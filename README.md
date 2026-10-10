@@ -1,3 +1,5 @@
+![Fishbowl banner: a goldfish swimming among blank cards and probability charts](docs/images/fishbowl_banner.png)
+
 # Fishbowl
 
 Fishbowl is an open-source deck-tuning and goldfish-coaching tool for Magic: The Gathering's Commander (EDH) format. Paste in a decklist and Fishbowl checks that it's legal, shows mana and curve statistics, and works out the best way to play your first few turns against an empty board ("goldfishing"). A later phase will add games against opponent decks using the [Argentum Engine](https://github.com/wingedsheep/argentum-engine).
