@@ -8,25 +8,25 @@ Update the status marks as stages finish.
 
 ## Phase 1: Goldfish (Python)
 
-### ⬜ Stage 0: Setup
+### ✅ Stage 0: Setup
 The GitHub repo exists with an Apache-2.0 `LICENSE` and nothing else.
 
 Placed by hand from the setup kit (see the kit's `SETUP.md`), before Claude Code starts:
-- ⬜ Clone the repo to `C:\Projects\fishbowl`.
-- ⬜ Add `.gitignore`, `CLAUDE.md` and `docs/ROADMAP.md`; first commit and push.
-- ⬜ Add `CLAUDE.local.md` (gitignored, never pushed).
+- ✅ Clone the repo to `C:\Projects\fishbowl`.
+- ✅ Add `.gitignore`, `CLAUDE.md` and `docs/ROADMAP.md`; first commit and push.
+- ✅ Add `CLAUDE.local.md` (gitignored, never pushed).
 
 Built with Claude Code, one slice at a time:
-- ⬜ `README.md` with a one-paragraph description and the Fan Content notice.
-- ⬜ Initialize the uv project (`uv init`), pinned to Python 3.12+.
-- ⬜ Create `src/fishbowl/` and `tests/` folders, with one passing placeholder test so `uv run pytest` works.
-- ⬜ A `hello.py` that reads a text decklist and prints how many cards it has.
-- ⬜ Start `docs/LEARNING_LOG.md` (gitignored, local only) with its first entry.
+- ✅ `README.md` with a one-paragraph description and the Fan Content notice.
+- ✅ Initialize the uv project (`uv init`), pinned to Python 3.12+.
+- ✅ Create `src/fishbowl/` and `tests/` folders, with one passing placeholder test so `uv run pytest` works.
+- ✅ A `hello.py` (`src/fishbowl/hello.py`, run with `uv run python -m fishbowl.hello <file>`) that reads a text decklist and prints how many cards it has. Sample deck in `examples/`.
+- ✅ Start `docs/LEARNING_LOG.md` (gitignored, local only) with its first entry.
 
 Concepts: Git basics, `.gitignore`, virtual environments, running scripts and tests from the terminal.
 **Done when:** `hello.py` prints 100 for a sample deck, `uv run pytest` passes, everything except the personal files is pushed to GitHub, and `git status` shows the personal files are ignored.
 
-### ⬜ Stage 1: Card data
+### 🔄 Stage 1: Card data
 - ⬜ Part 1: Download Scryfall's `oracle_cards` bulk data and explore it in Pandas; flatten commander legality into a simple yes/no column.
 - ⬜ Part 2: Build a SQLite database of the useful columns.
 - ⬜ Part 3: A download/refresh script so anyone can rebuild `data/` from Scryfall with one command.
