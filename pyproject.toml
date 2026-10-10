@@ -16,6 +16,10 @@ fishbowl = "fishbowl:main"
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
 
+[tool.ruff]
+# Tells ruff our own package lives in src/, so it sorts our imports as first-party.
+src = ["src"]
+
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",

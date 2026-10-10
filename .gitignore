@@ -9,7 +9,7 @@ docs/LEARNING_LOG.md
 # Card data: downloaded on first run, never committed
 # (Wizards of the Coast / Scryfall content)
 # ---------------------------------------------------------
-data/
+/data/
 *.db
 *.sqlite
 *.sqlite3
