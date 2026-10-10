@@ -7,7 +7,9 @@ authors = [
     { name = "TheGreatGodPan", email = "158304563+TheGreatGodPan@users.noreply.github.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pandas>=3.0.6",
+]
 
 [project.scripts]
 fishbowl = "fishbowl:main"
