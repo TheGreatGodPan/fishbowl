@@ -1,0 +1,17 @@
+[project]
+name = "fishbowl"
+version = "0.1.0"
+description = "Commander (EDH) deck-tuning and goldfish-coaching tool for Magic: The Gathering"
+readme = "README.md"
+authors = [
+    { name = "TheGreatGodPan", email = "158304563+TheGreatGodPan@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+fishbowl = "fishbowl:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
