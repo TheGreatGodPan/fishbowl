@@ -27,7 +27,7 @@ Concepts: Git basics, `.gitignore`, virtual environments, running scripts and te
 **Done when:** `hello.py` prints 100 for a sample deck, `uv run pytest` passes, everything except the personal files is pushed to GitHub, and `git status` shows the personal files are ignored.
 
 ### 🔄 Stage 1: Card data
-- ⬜ Part 1: Download Scryfall's `oracle_cards` bulk data and explore it in Pandas; flatten commander legality into a simple yes/no column.
+- ✅ Part 1: Download Scryfall's `oracle_cards` bulk data and explore it in Pandas; flatten commander legality into a simple yes/no column.
 - ⬜ Part 2: Build a SQLite database of the useful columns.
 - ⬜ Part 3: A download/refresh script so anyone can rebuild `data/` from Scryfall with one command.
 
