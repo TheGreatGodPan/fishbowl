@@ -28,7 +28,7 @@ Concepts: Git basics, `.gitignore`, virtual environments, running scripts and te
 
 ### 🔄 Stage 1: Card data
 - ✅ Part 1: Download Scryfall's `oracle_cards` bulk data and explore it in Pandas; flatten commander legality into a simple yes/no column.
-- ⬜ Part 2: Build a SQLite database of the useful columns.
+- ✅ Part 2: Build a SQLite database of the useful columns.
 - ⬜ Part 3: A download/refresh script so anyone can rebuild `data/` from Scryfall with one command.
 
 Suggested `cards` table: `oracle_id` (primary key), `name`, `mana_cost`, `cmc`, `type_line`, `oracle_text`, `colors`, `color_identity`, `produced_mana`, `legal_commander`, `is_game_changer`, `card_faces` (JSON text for double-faced cards).
