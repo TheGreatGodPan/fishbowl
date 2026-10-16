@@ -26,16 +26,16 @@ Built with Claude Code, one slice at a time:
 Concepts: Git basics, `.gitignore`, virtual environments, running scripts and tests from the terminal.
 **Done when:** `hello.py` prints 100 for a sample deck, `uv run pytest` passes, everything except the personal files is pushed to GitHub, and `git status` shows the personal files are ignored.
 
-### 🔄 Stage 1: Card data
+### ✅ Stage 1: Card data
 - ✅ Part 1: Download Scryfall's `oracle_cards` bulk data and explore it in Pandas; flatten commander legality into a simple yes/no column.
 - ✅ Part 2: Build a SQLite database of the useful columns.
-- ⬜ Part 3: A download/refresh script so anyone can rebuild `data/` from Scryfall with one command.
+- ✅ Part 3: A download/refresh script (`uv run python -m fishbowl.data.refresh`) so anyone can rebuild `data/` from Scryfall with one command.
 
 Suggested `cards` table: `oracle_id` (primary key), `name`, `mana_cost`, `cmc`, `type_line`, `oracle_text`, `colors`, `color_identity`, `produced_mana`, `legal_commander`, `is_game_changer`, `card_faces` (JSON text for double-faced cards).
 
 **Done when:** a SQL query returns Sol Ring's mana cost and color identity, and the database rebuilds from a single command.
 
-### ⬜ Stage 2: Decklist parser
+### 🔄 Stage 2: Decklist parser
 Turn pasted text into a list of cards. Formats: plain (`1 Sol Ring`, `1x Sol Ring`), Moxfield (`1 Sol Ring (CMM) 400 *F*` with section headers like `Commander`), Archidekt (`1x Sol Ring (cmm) 400 [Ramp]`). Look up names in the SQLite database; report unknown lines instead of crashing.
 Concepts: functions, strings, regular expressions, error handling, first pytest tests.
 **Done when:** Ian's decks (Goreclaw, Krenko, Tramplesaurus Rex) and bad test lines parse correctly.
