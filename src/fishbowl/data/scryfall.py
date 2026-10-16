@@ -1,6 +1,6 @@
 """Talking to Scryfall: finding and downloading its bulk card data files.
 
-Download the oracle_cards file with:  uv run python -m fishbowl.data.scryfall
+Download the bulk files with:  uv run python -m fishbowl.data.scryfall
 """
 
 import json
@@ -12,6 +12,12 @@ from urllib.request import Request, urlopen
 INDEX_URL = "https://api.scryfall.com/bulk-data"
 # Kept compressed: Pandas reads .jsonl.gz directly, so there's no need to unzip.
 DEFAULT_DEST = Path("data") / "oracle-cards.jsonl.gz"
+# Every printing (about 80 MB): only used to learn alternate printed names.
+DEFAULT_PRINTINGS_DEST = Path("data") / "default-cards.jsonl.gz"
+BULK_FILES = (
+    ("oracle_cards", DEFAULT_DEST),
+    ("default_cards", DEFAULT_PRINTINGS_DEST),
+)
 # Scryfall asks every client to identify itself, like a polite scanner.
 USER_AGENT = "Fishbowl/0.1 (+https://github.com/TheGreatGodPan/fishbowl)"
 TIMEOUT_SECONDS = 60
@@ -79,15 +85,21 @@ def download_file(url: str, dest: Path) -> None:
     partial.replace(dest)  # rename: all or nothing
 
 
+def download_bulk(index: dict, kind: str, dest: Path) -> None:
+    """Find one bulk file in the index, check its link, and download it to dest."""
+    url = find_bulk_download(index, kind)
+    check_download_url(url)
+    print(f"Downloading {url}")
+    download_file(url, dest)
+    size_mb = dest.stat().st_size / 1_000_000
+    print(f"Saved {dest} ({size_mb:.0f} MB)")
+
+
 def main() -> None:
     print(f"Fetching bulk-data index from {INDEX_URL}")
-    url = find_bulk_download(fetch_json(INDEX_URL), "oracle_cards")
-    check_download_url(url)
-
-    print(f"Downloading {url}")
-    download_file(url, DEFAULT_DEST)
-    size_mb = DEFAULT_DEST.stat().st_size / 1_000_000
-    print(f"Saved {DEFAULT_DEST} ({size_mb:.0f} MB)")
+    index = fetch_json(INDEX_URL)
+    for kind, dest in BULK_FILES:
+        download_bulk(index, kind, dest)
 
 
 if __name__ == "__main__":

@@ -137,6 +137,84 @@ def test_main_without_source_explains_what_to_do(tmp_path, capsys):
 def test_main_builds_and_reports(tmp_path, capsys, sol_ring):
     source = tmp_path / "cards.jsonl.gz"
     write_jsonl_gz(source, [json.dumps(sol_ring)])
-    code = main(source, tmp_path / "cards.db")
+    code = main(source, tmp_path / "cards.db", tmp_path / "no-printings.jsonl.gz")
     assert code == 0
-    assert "1 cards, 0 lines skipped" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "1 cards" in out
+    assert "0 lines skipped" in out
+
+
+def test_main_without_printings_says_aliases_are_limited(tmp_path, capsys, sol_ring):
+    source = tmp_path / "cards.jsonl.gz"
+    write_jsonl_gz(source, [json.dumps(sol_ring)])
+    main(source, tmp_path / "cards.db", tmp_path / "no-printings.jsonl.gz")
+    assert "alternate printed names won't be recognized" in capsys.readouterr().out
+
+
+def aliases(db_path):
+    return dict(query(db_path, "SELECT alias, oracle_id FROM card_aliases"))
+
+
+def test_front_face_name_becomes_alias(tmp_path, witch_enchanter):
+    source = tmp_path / "cards.jsonl.gz"
+    write_jsonl_gz(source, [json.dumps(witch_enchanter)])
+    dest = tmp_path / "cards.db"
+    build_database(source, dest)
+    assert aliases(dest) == {"Witch Enchanter": "0355249a-8e4e-41db-9cea-1b901faffbe6"}
+
+
+def test_printed_flavor_name_becomes_alias(tmp_path, great_henge, banyan_tree_printing):
+    source = tmp_path / "cards.jsonl.gz"
+    printings = tmp_path / "printings.jsonl.gz"
+    write_jsonl_gz(source, [json.dumps(great_henge)])
+    write_jsonl_gz(printings, [json.dumps(banyan_tree_printing), "{broken"])
+    dest = tmp_path / "cards.db"
+    build_database(source, dest, printings)
+    assert aliases(dest) == {"The Banyan Tree": "78427103-9543-41fb-b6d4-72963fe87275"}
+
+
+def test_alias_lookup_ignores_case(card_db):
+    rows = query(
+        card_db,
+        "SELECT oracle_id FROM card_aliases WHERE alias = ?",
+        ("the banyan tree",),
+    )
+    assert rows == [("78427103-9543-41fb-b6d4-72963fe87275",)]
+
+
+def test_alias_for_card_not_in_database_is_ignored(
+    tmp_path, sol_ring, banyan_tree_printing
+):
+    source = tmp_path / "cards.jsonl.gz"
+    printings = tmp_path / "printings.jsonl.gz"
+    write_jsonl_gz(source, [json.dumps(sol_ring)])  # no Great Henge in cards
+    write_jsonl_gz(printings, [json.dumps(banyan_tree_printing)])
+    dest = tmp_path / "cards.db"
+    build_database(source, dest, printings)
+    assert aliases(dest) == {}
+
+
+def test_alias_equal_to_a_real_card_name_is_ignored(
+    tmp_path, sol_ring, great_henge, banyan_tree_printing
+):
+    source = tmp_path / "cards.jsonl.gz"
+    printings = tmp_path / "printings.jsonl.gz"
+    write_jsonl_gz(source, [json.dumps(sol_ring), json.dumps(great_henge)])
+    banyan_tree_printing["flavor_name"] = "sol ring"  # would hijack a real card name
+    write_jsonl_gz(printings, [json.dumps(banyan_tree_printing)])
+    dest = tmp_path / "cards.db"
+    build_database(source, dest, printings)
+    assert aliases(dest) == {}
+
+
+def test_flavor_name_same_as_real_name_is_ignored(
+    tmp_path, great_henge, banyan_tree_printing
+):
+    source = tmp_path / "cards.jsonl.gz"
+    printings = tmp_path / "printings.jsonl.gz"
+    write_jsonl_gz(source, [json.dumps(great_henge)])
+    banyan_tree_printing["flavor_name"] = "The Great Henge"
+    write_jsonl_gz(printings, [json.dumps(banyan_tree_printing)])
+    dest = tmp_path / "cards.db"
+    build_database(source, dest, printings)
+    assert aliases(dest) == {}

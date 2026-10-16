@@ -2,6 +2,7 @@
 
 import pytest
 
+from fishbowl.data import database, scryfall
 from fishbowl.data.scryfall import build_request, check_download_url, find_bulk_download
 
 # A tiny fake index copied from the real https://api.scryfall.com/bulk-data
@@ -72,3 +73,51 @@ def test_accepts_scryfall_download_url():
 def test_rejects_untrusted_download_url(url):
     with pytest.raises(ValueError):
         check_download_url(url)
+
+
+def test_printings_path_matches_database_default():
+    # The downloader and the builder must agree on where the printings file lives.
+    assert scryfall.DEFAULT_PRINTINGS_DEST == database.DEFAULT_PRINTINGS
+
+
+def test_refresh_downloads_both_bulk_files():
+    assert [kind for kind, _ in scryfall.BULK_FILES] == [
+        "oracle_cards",
+        "default_cards",
+    ]
+
+
+def test_download_bulk_saves_to_dest(tmp_path, monkeypatch):
+    # monkeypatch: temporarily swap a function for a fake, for this test only.
+    saved = []
+
+    def fake_download(url, dest):
+        saved.append((url, dest))
+        dest.write_bytes(b"fake")
+
+    monkeypatch.setattr(scryfall, "download_file", fake_download)
+    dest = tmp_path / "default-cards.jsonl.gz"
+    index = {
+        "data": [
+            {
+                "type": "default_cards",
+                "jsonl_download_uri": "https://data.scryfall.io/default-cards/d.jsonl.gz",
+            }
+        ]
+    }
+    scryfall.download_bulk(index, "default_cards", dest)
+    assert saved == [("https://data.scryfall.io/default-cards/d.jsonl.gz", dest)]
+
+
+def test_download_bulk_refuses_untrusted_url(tmp_path, monkeypatch):
+    monkeypatch.setattr(scryfall, "download_file", lambda url, dest: None)
+    index = {
+        "data": [
+            {
+                "type": "default_cards",
+                "jsonl_download_uri": "https://evil.example/d.jsonl.gz",
+            }
+        ]
+    }
+    with pytest.raises(ValueError):
+        scryfall.download_bulk(index, "default_cards", tmp_path / "x.jsonl.gz")

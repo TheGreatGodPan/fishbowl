@@ -29,7 +29,7 @@ def test_no_network_skips_build_and_explains(capsys):
     assert built == []  # never rebuild from data we failed to refresh
     out = capsys.readouterr().out
     assert "Download failed" in out
-    assert "not changed" in out
+    assert "not rebuilt" in out
 
 
 def test_unexpected_scryfall_response_skips_build():

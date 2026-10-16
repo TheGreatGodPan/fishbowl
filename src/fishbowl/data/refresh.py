@@ -24,7 +24,7 @@ def refresh(
         # OSError covers no network, timeouts and HTTP errors; ValueError covers
         # an index or link from Scryfall that fails our checks.
         print(f"Download failed: {error}")
-        print("Your existing card data was not changed.")
+        print("cards.db was not rebuilt.")
         return 1
     return build()
 
