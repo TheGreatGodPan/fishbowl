@@ -48,8 +48,10 @@ def test_entry_without_download_link_raises_a_clear_error():
 def test_request_identifies_fishbowl():
     req = build_request("https://api.scryfall.com/bulk-data")
     # urllib stores header names as "User-agent" (only the first letter capitalized).
-    assert "Fishbowl" in req.get_header("User-agent")
-    assert "github.com/TheGreatGodPan/fishbowl" in req.get_header("User-agent")
+    user_agent = req.get_header("User-agent")
+    assert user_agent is not None
+    assert "Fishbowl" in user_agent
+    assert "github.com/TheGreatGodPan/fishbowl" in user_agent
     assert req.get_header("Accept") == "application/json"
 
 
