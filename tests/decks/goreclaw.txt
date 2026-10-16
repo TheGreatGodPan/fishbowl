@@ -1,0 +1,95 @@
+Commander: Goreclaw, Terror of Qal Sisma
+1 Goreclaw, Terror of Qal Sisma (CMM) 293
+1 Apex Devastator (M3C) 220
+1 Arbor Elf (A25) 160
+1 Arcane Signet (TLE) 315
+1 Beast Whisperer (CLU) 158
+1 Beast Within (TDC) 249
+1 Bonders' Enclave (M3C) 323
+1 Castle Garenbrig (ELD) 240
+1 Concordant Crossroads (CHR) 60
+1 Craterhoof Behemoth (CMM) 280
+1 Cultivate (ECC) 103
+1 Defense of the Heart (ULG) 100
+1 Defiler of Vigor (DMU) 160
+1 Elder Gargaroth (DRC) 111
+1 Elemental Bond (TDC) 254
+1 Elvish Mystic (CMM) 284
+1 Emerald Medallion (MH3) 291
+1 End-Raze Forerunners (BLC) 214
+1 Eternal Witness (M3C) 227
+1 Fanatic of Rhonas (MH3) 152
+1 Fierce Empath (FDN) 636
+1 Forest (TMT) 257 *F*
+1 Forest (ECL) 283 *F*
+1 Forest (TLA) 291 *F*
+2 Forest (SPM) 193 *F*
+2 Forest (EOE) 266 *F*
+1 Forest (EOE) 266
+1 Forest (FIN) 306
+1 Forest (TDM) 276
+2 Forest (DFT) 276 *F*
+1 Forest (DFT) 276
+1 Forest (FDN) 291 *F*
+2 Forest (FDN) 290
+2 Forest (FDN) 291
+2 Forest (DSK) 276 *F*
+1 Forest (DSK) 276
+1 Forest (MH3) 308 *F*
+1 Forest (MH3) 308
+1 Forest (MOM) 290 *F*
+1 Forest (ONE) 271
+1 Forest (VOW) 276 *F*
+1 Fyndhorn Elves (CMR) 228
+1 Garruk's Uprising (ECC) 109
+1 Ghalta, Primal Hunger (SLD) 1124
+1 Ghalta, Stampede Tyrant (LCI) 185
+1 God-Eternal Rhonas (WAR) 163
+1 Greater Good (BLC) 223
+1 Guardian Project (RVR) 146
+1 Harmonize (ECC) 111
+1 Heroic Intervention (CMM) 295
+1 Karametra's Acolyte (THS) 160
+1 Kodama of the East Tree (BLC) 227
+1 Kodama's Reach (ECC) 113
+1 Kogla, the Titan Ape (IKO) 162
+1 Krosan Grip (C21) 198
+1 Lifecrafter's Bestiary (MKC) 231
+1 Lightning Greaves (OTC) 260
+1 Llanowar Elves (PDMU) 1★ *F*
+1 Mosswort Bridge (TDC) 379
+1 Nature's Claim (WWK) 108
+1 Nature's Lore (EOC) 101
+1 Nykthos, Shrine to Nyx (THS) 223
+1 Nylea, Keen-Eyed (THB) 185
+1 Ouroboroid (EOE) 201
+1 Pathbreaker Ibex (CMA) 132
+1 Ram Through (CMM) 314
+1 Rampant Growth (TDC) 265
+1 Regal Force (DDU) 22
+1 Reliquary Tower (TDC) 386
+1 Rishkar's Expertise (M3C) 411
+1 Rogue's Passage (FDN) 264
+1 Selvala, Heart of the Wilds (ECC) 116
+1 Shamanic Revelation (BLC) 237
+1 Skyshroud Claim (EOC) 107
+1 Sol Ring (SLC) 19 *F*
+1 Sphere Grid (FIC) 70
+1 Surrak and Goreclaw (MOM) 337
+1 Surrak, the Hunt Caller (FDN) 647
+1 Swiftfoot Boots (FDN) 258
+1 Temur Sabertooth (NCC) 315
+1 Terastodon (M3C) 249
+1 The Banyan Tree (TLE) 41 *F*
+1 The Cloudsea Djinn (FCA) 16 *F*
+1 Three Visits (OTC) 209
+1 Thunderfoot Baloth (DSC) 201
+1 Tribute to the World Tree (MOM) 211
+1 Ulvenwald Tracker (MM3) 144
+1 Unnatural Growth (INR) 223
+1 Up the Beanstalk (WOE) 195
+1 Vaultborn Tyrant (BIG) 20
+1 War Room (MKC) 310
+1 Whisperer of the Wilds (2XM) 187
+1 Wirewood Symbiote (MH3) 288
+1 Zopandrel, Hunger Dominus (ONE) 195
