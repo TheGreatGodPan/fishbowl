@@ -7,13 +7,14 @@ from typing import Self
 
 DEFAULT_DB = Path("data") / "cards.db"
 
-_BY_NAME = """
-SELECT oracle_id, name, type_line, oracle_text FROM cards
-WHERE name = ? COLLATE NOCASE
-"""
+_FIELDS = (
+    "c.oracle_id, c.name, c.type_line, c.oracle_text, "
+    "c.color_identity, c.commander_status, c.is_game_changer"
+)
+_BY_NAME = f"SELECT {_FIELDS} FROM cards AS c WHERE c.name = ? COLLATE NOCASE"
 # The alias column is declared COLLATE NOCASE, so this match ignores case too.
-_BY_ALIAS = """
-SELECT c.oracle_id, c.name, c.type_line, c.oracle_text
+_BY_ALIAS = f"""
+SELECT {_FIELDS}
 FROM card_aliases AS a JOIN cards AS c ON c.oracle_id = a.oracle_id
 WHERE a.alias = ?
 """
@@ -21,12 +22,15 @@ WHERE a.alias = ?
 
 @dataclass(frozen=True)
 class Card:
-    """The few card fields the deck code needs."""
+    """The card fields the deck code needs."""
 
     oracle_id: str
     name: str
     type_line: str | None
     oracle_text: str | None
+    color_identity: str  # WUBRG letters, "" if colorless
+    commander_status: str  # "legal", "banned", "not_legal", ...
+    is_game_changer: bool
 
 
 class CardLookup:
@@ -49,7 +53,10 @@ class CardLookup:
         row = self._connection.execute(_BY_NAME, (name,)).fetchone()
         if row is None and self._has_aliases:
             row = self._connection.execute(_BY_ALIAS, (name,)).fetchone()
-        return Card(*row) if row is not None else None
+        if row is None:
+            return None
+        *fields, game_changer = row
+        return Card(*fields, is_game_changer=bool(game_changer))  # SQLite stores 1/0
 
     def close(self) -> None:
         self._connection.close()

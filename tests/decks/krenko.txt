@@ -1,0 +1,76 @@
+Commander: Krenko, Mob Boss
+1 Krenko, Mob Boss (FDN) 204
+1 Abrade (INR) 139
+1 Altar of the Brood (KTK) 216
+1 Arcane Signet (M3C) 283
+1 Ardoz, Cobbler of War (J22) 29
+1 Basilisk Collar (DSC) 241
+1 Battle Hymn (AVR) 128
+1 Beetleback Chief (CM2) 83
+1 Blasphemous Act (PIP) 188
+1 Blighted Gorge (DDT) 58
+1 Brass's Bounty (FDN) 190
+1 Chaos Warp (TDC) 208
+1 Coat of Arms (DDS) 58
+1 Conspicuous Snoop (M21) 139
+1 Contested War Zone (EOS) 8
+1 Den of the Bugbear (AFR) 351
+1 Dragon Fodder (MM3) 93
+1 Eldrazi Monument (M3C) 290
+1 Empty the Warrens (TSR) 162
+1 Faithless Looting (STA) 38
+1 Fire Diamond (6ED) 284
+1 Forgotten Cave (BLC) 305
+1 Frenzied Goblin (GK1) 81
+1 Gempalm Incinerator (EVG) 37
+1 Goblin Bombardment (MH2) 279
+1 Goblin Bushwhacker (ZEN) 125
+1 Goblin Chieftain (DDT) 41
+1 Goblin Grenade (FEM) 56c
+1 Goblin Heelcutter (FRF) 102
+1 Goblin Instigator (MOC) 282
+1 Goblin King (10E) 207
+1 Goblin Lackey (USG) 190
+1 Goblin Lookout (LGN) 101
+1 Goblin Matron (EVG) 39
+1 Goblin Recruiter (6ED) 186
+1 Goblin Ringleader (M20) 143
+1 Goblin Sharpshooter (C13) 111
+1 Goblin Trashmaster (M19) 144
+1 Goblin War Party (MH1) 131
+1 Goblin War Strike (SCG) 96
+1 Goblin Warchief (EVG) 42
+1 Goblin Wardriver (DDT) 50
+1 Hobgoblin Bandit Lord (AFR) 147
+1 Hordeling Outburst (ONC) 100
+1 Idol of Oblivion (TDC) 319
+1 Impact Tremors (MOC) 285
+1 Incinerating Blast (FDN) 90
+1 Kiki-Jiki, Mirror Breaker (IMA) 136
+1 Krenko, Tin Street Kingpin (DMC) 124
+1 Krenko's Command (RVR) 115
+1 Lightning Greaves (OTC) 260
+1 Mana Echoes (2XM) 136
+1 Mass Hysteria (INR) 164
+1 Massive Raid (GTC) 100
+1 Mob Justice (STH) 90
+1 Moria Marauder (LTR) 138
+26 Mountain (EOE) 273
+1 Ramunap Ruins (OTC) 311
+1 Reckless Impulse (VOW) 174
+1 Roaming Throne (LCI) 258
+1 Ruby Medallion (TMP) 305
+1 Shared Animosity (WOT) 49
+1 Siege-Gang Commander (TDC) 232
+1 Skirk Prospector (DMR) 137
+1 Skullclamp (MOC) 379
+1 Sol Ring (M3C) 305
+1 Squee, the Immortal (NCC) 275
+1 Staff of Domination (CMR) 343
+1 Swarming Goblins (AFR) 162
+1 Swiftfoot Boots (TDC) 328
+1 Sword of the Paruns (RVR) 395
+1 Terrain Generator (EOS) 43
+1 Thornbite Staff (MOR) 145
+1 Uncharted Haven (FDN) 564
+1 Volley Veteran (FDN) 550

@@ -16,6 +16,7 @@ from fishbowl.deck.commander import (
 )
 from fishbowl.deck.lookup import DEFAULT_DB, Card, CardLookup
 from fishbowl.deck.model import DeckEntry, ParsedDeck, Problem
+from fishbowl.deck.validator import validate
 
 MAX_QUANTITY = 999
 # The longest real card name is about 140 characters. Capping the line keeps one
@@ -250,7 +251,7 @@ def main(
     read: Callable[[str], str] = input,
     write: Callable[[str], object] = print,
 ) -> int:
-    """Parse a decklist file and print a summary. Returns 0 if there were no problems."""
+    """Parse and check a decklist file. Returns 0 only for a legal, fully readable deck."""
     args = sys.argv[1:] if argv is None else argv
     if len(args) != 1:
         write("Usage: uv run python -m fishbowl.deck.parser <decklist.txt>")
@@ -275,6 +276,7 @@ def main(
                 for entry in deck.cards
                 if entry.name == chosen
             ]
+        report = validate(deck, lookup)  # needs the lookup, so it runs inside the with
 
     write(f"Deck: {deck.total} cards")
     commander_names = " + ".join(entry.name for entry in deck.commanders)
@@ -289,7 +291,19 @@ def main(
                 write(f"  {problem.reason}")  # about the whole list, not one line
             else:
                 write(f"  line {problem.line_number}: {problem.reason}")
-    return 1 if deck.problems else 0
+    if report.is_legal:
+        write("Legal: yes")
+    else:
+        count = len(report.errors)
+        write(f"Legal: no ({count} {'error' if count == 1 else 'errors'})")
+        write("Errors:")
+        for issue in report.errors:
+            write(f"  {issue.message}")
+    if report.notes:
+        write("Notes:")
+        for issue in report.notes:
+            write(f"  {issue.message}")
+    return 0 if report.is_legal else 1
 
 
 if __name__ == "__main__":

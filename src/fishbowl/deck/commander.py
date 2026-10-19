@@ -8,10 +8,23 @@ from fishbowl.deck.model import ParsedDeck
 
 def can_be_commander(card: Card) -> bool:
     """True for legendary creatures and cards whose text says "can be your commander"."""
-    type_line = card.type_line or ""
+    # Only the front face counts: a "Land // Legendary Creature" is cast as a land.
+    front = (card.type_line or "").split(" // ")[0]
     text = card.oracle_text or ""
-    legendary_creature = "Legendary" in type_line and "Creature" in type_line
-    return legendary_creature or "can be your commander" in text
+    legendary_creature = "Legendary" in front and "Creature" in front
+    # Grist, the Hunger Tide is a legendary planeswalker that is a creature while
+    # in the command zone ("As long as Grist isn't on the battlefield, it's a ...").
+    marker = "isn't on the battlefield, it's a"
+    creature_off_battlefield = (
+        "Legendary" in front
+        and marker in text
+        and "creature" in text.split(marker, 1)[1].split(".", 1)[0]
+    )
+    return (
+        legendary_creature
+        or creature_off_battlefield
+        or "can be your commander" in text
+    )
 
 
 def commander_candidates(deck: ParsedDeck, lookup: CardLookup) -> list[str]:

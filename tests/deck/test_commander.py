@@ -76,3 +76,11 @@ def test_can_be_your_commander_text_makes_a_candidate(card_db):
         )
         # Teferi is a planeswalker: only his "can be your commander" text qualifies him.
         assert commander_candidates(deck, lookup) == ["Teferi, Temporal Archmage"]
+
+
+def test_grist_is_a_candidate_and_westvale_is_not(card_db):
+    with CardLookup(card_db) as lookup:
+        deck = parse_deck(
+            "1 Grist, the Hunger Tide\n1 Westvale Abbey\n1 Sol Ring\n", lookup
+        )
+        assert commander_candidates(deck, lookup) == ["Grist, the Hunger Tide"]

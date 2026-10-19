@@ -16,7 +16,21 @@ def test_finds_exact_name(card_db):
         name="Sol Ring",
         type_line="Artifact",
         oracle_text="{T}: Add {C}{C}.",
+        color_identity="",
+        commander_status="legal",
+        is_game_changer=False,
     )
+
+
+def test_card_carries_rules_fields(card_db):
+    with CardLookup(card_db) as lookup:
+        survival = lookup.find("Survival of the Fittest")
+        primordial = lookup.find("Sylvan Primordial")
+    assert survival is not None
+    assert primordial is not None
+    assert survival.color_identity == "G"
+    assert survival.is_game_changer is True  # a real bool, not SQLite's 1
+    assert primordial.commander_status == "banned"
 
 
 def test_name_ignores_case(card_db):

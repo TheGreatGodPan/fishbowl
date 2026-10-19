@@ -7,6 +7,7 @@ import pytest
 
 from fishbowl.deck.lookup import CardLookup
 from fishbowl.deck.parser import parse_deck
+from fishbowl.deck.validator import validate
 
 REAL_DB = Path("data") / "cards.db"
 DECKS = Path(__file__).parent.parent / "decks"
@@ -36,6 +37,7 @@ pytestmark = pytest.mark.skipif(
     [
         ("goreclaw.txt", "Goreclaw, Terror of Qal Sisma"),
         ("ghalta.txt", "Ghalta, Primal Hunger"),
+        ("krenko.txt", "Krenko, Mob Boss"),
     ],
 )
 def test_real_deck_parses_cleanly(filename, commander):
@@ -62,3 +64,12 @@ def test_ghalta_forests_on_two_lines():
     with CardLookup(REAL_DB) as lookup:
         deck = parse_deck(text, lookup)
     assert {entry.name: entry.quantity for entry in deck.cards}["Forest"] == 32
+
+
+@pytest.mark.parametrize("filename", ["goreclaw.txt", "ghalta.txt", "krenko.txt"])
+def test_real_deck_is_legal(filename):
+    text = (DECKS / filename).read_text(encoding="utf-8")
+    with CardLookup(REAL_DB) as lookup:
+        report = validate(parse_deck(text, lookup), lookup)
+    assert report.errors == []
+    assert report.notes[0].message == "Game Changers: 0"

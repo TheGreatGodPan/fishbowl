@@ -22,17 +22,19 @@ def test_clean_deck_with_commander(tmp_path, card_db):
     deck = tmp_path / "deck.txt"
     deck.write_text(f"1 Sol Ring\n\n1 {GORECLAW}\n", encoding="utf-8")
     code, shown = run([str(deck)], card_db)
-    assert code == 0
+    assert code == 1  # 2 cards: parses fine but isn't a legal deck
     assert "Deck: 2 cards" in shown
     assert f"Commander: {GORECLAW}" in shown
+    assert "Legal: no (1 error)" in shown
 
 
 def test_asks_for_commander_when_unknown(tmp_path, card_db):
     deck = tmp_path / "deck.txt"
     deck.write_text(f"1 {GORECLAW}\n1 Krenko, Mob Boss\n1 Sol Ring\n", encoding="utf-8")
     code, shown = run([str(deck)], card_db, answers=["gore", "1"])
-    assert code == 0
+    assert code == 1  # 3 cards: not a legal deck
     assert f"Commander: {GORECLAW}" in shown
+    assert "Legal: no (2 errors)" in shown
 
 
 def test_skipped_commander_shows_unknown(tmp_path, card_db):
@@ -96,3 +98,27 @@ def test_whole_list_problem_prints_without_a_line_number(tmp_path, card_db):
     assert code == 1
     assert "  too many lines (1001); a Commander deck has 100 cards" in shown
     assert not any(item.startswith("  line 0") for item in shown)
+
+
+def test_legal_deck_prints_report_and_exits_0(tmp_path, card_db):
+    deck = tmp_path / "deck.txt"
+    deck.write_text(
+        f"Commander: {GORECLAW}\n1 {GORECLAW}\n1 Sol Ring\n98 Forest\n",
+        encoding="utf-8",
+    )
+    code, shown = run([str(deck)], card_db)
+    assert code == 0
+    assert "Legal: yes" in shown
+    assert "Notes:" in shown
+    assert "  Game Changers: 0" in shown
+    assert "Errors:" not in shown
+
+
+def test_illegal_deck_lists_errors(tmp_path, card_db):
+    deck = tmp_path / "deck.txt"
+    deck.write_text(f"Commander: {GORECLAW}\n2 Sol Ring\n97 Forest\n", encoding="utf-8")
+    code, shown = run([str(deck)], card_db)
+    assert code == 1
+    assert "Legal: no (1 error)" in shown
+    assert "Errors:" in shown
+    assert "  2 copies of Sol Ring; only 1 allowed." in shown

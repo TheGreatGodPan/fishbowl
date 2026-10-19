@@ -35,17 +35,17 @@ Suggested `cards` table: `oracle_id` (primary key), `name`, `mana_cost`, `cmc`, 
 
 **Done when:** a SQL query returns Sol Ring's mana cost and color identity, and the database rebuilds from a single command.
 
-### 🔄 Stage 2: Decklist parser
+### ✅ Stage 2: Decklist parser
 Turn pasted text into a list of cards. Formats: plain (`1 Sol Ring`, `1x Sol Ring`), Moxfield (`1 Sol Ring (CMM) 400 *F*` with section headers like `Commander`), Archidekt (`1x Sol Ring (cmm) 400 [Ramp]`). Look up names in the SQLite database; report unknown lines instead of crashing.
 Concepts: functions, strings, regular expressions, error handling, first pytest tests.
 **Done when:** Ian's decks (Goreclaw, Krenko, Tramplesaurus Rex) and bad test lines parse correctly.
 
-### ⬜ Stage 3: Deck validator
-Check: exactly 100 cards including commander(s); singleton by card name (basic lands and "any number of cards named..." cards exempt); every card inside the commander's color identity; banned cards; commander eligibility; partner/Background pairings later.
+### ✅ Stage 3: Deck validator
+Check: exactly 100 cards including commander(s); singleton by card name (basic lands and "any number of cards named..." cards exempt); every card inside the commander's color identity; banned cards; commander eligibility; partner/Background pairings later (reported as a note, not checked yet).
 Concepts: sets, dictionaries, dataclasses, modules.
 **Done when:** valid decks pass and a deliberately broken deck fails with clear messages.
 
-### ⬜ Stage 4: Opening-hand stats
+### 🔄 Stage 4: Opening-hand stats
 Simulate thousands of shuffles and opening hands; compare with exact math (`scipy.stats.hypergeom`). Report P(2–5 lands in opening hand), P(land drop each turn 1–5), P(commander castable on curve). Mulligan rules: London mulligan, first mulligan free in multiplayer (configurable).
 Concepts: randomness, loops at scale, simulation vs exact probability, Matplotlib charts.
 **Done when:** simulated and exact land probabilities agree within 1%.
