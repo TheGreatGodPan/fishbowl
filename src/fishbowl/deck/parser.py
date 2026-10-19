@@ -245,6 +245,44 @@ def parse_deck(text: str, lookup: CardLookup) -> ParsedDeck:
     return deck
 
 
+def find_deck_file(
+    args: list[str], db_path: Path, usage: str, write: Callable[[str], object]
+) -> Path | None:
+    """The decklist path from the command line, or None after explaining what's wrong."""
+    if len(args) != 1:
+        write(usage)
+        return None
+    path = Path(args[0])
+    if not path.is_file():
+        write(f"No such file: {path}")
+        return None
+    if not db_path.is_file():
+        write(f"No card database at {db_path}. Build it first with:")
+        write("  uv run python -m fishbowl.data.refresh")
+        return None
+    return path
+
+
+def read_deck(
+    path: Path,
+    lookup: CardLookup,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+) -> ParsedDeck:
+    """Read and parse a decklist file, asking for the commander if none was found."""
+    # errors="replace": a list saved in another encoding still parses; odd bytes become �.
+    text = path.read_text(encoding="utf-8", errors="replace")
+    deck = parse_deck(text, lookup)
+    if not deck.commanders:
+        chosen = ask_for_commander(commander_candidates(deck, lookup), read, write)
+        deck.commanders = [
+            DeckEntry(entry.name, entry.oracle_id, 1)
+            for entry in deck.cards
+            if entry.name == chosen
+        ]
+    return deck
+
+
 def main(
     argv: list[str] | None = None,
     db_path: Path = DEFAULT_DB,
@@ -253,29 +291,12 @@ def main(
 ) -> int:
     """Parse and check a decklist file. Returns 0 only for a legal, fully readable deck."""
     args = sys.argv[1:] if argv is None else argv
-    if len(args) != 1:
-        write("Usage: uv run python -m fishbowl.deck.parser <decklist.txt>")
+    usage = "Usage: uv run python -m fishbowl.deck.parser <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
         return 1
-    path = Path(args[0])
-    if not path.is_file():
-        write(f"No such file: {path}")
-        return 1
-    if not db_path.is_file():
-        write(f"No card database at {db_path}. Build it first with:")
-        write("  uv run python -m fishbowl.data.refresh")
-        return 1
-
-    # errors="replace": a list saved in another encoding still parses; odd bytes become �.
-    text = path.read_text(encoding="utf-8", errors="replace")
     with CardLookup(db_path) as lookup:
-        deck = parse_deck(text, lookup)
-        if not deck.commanders:
-            chosen = ask_for_commander(commander_candidates(deck, lookup), read, write)
-            deck.commanders = [
-                DeckEntry(entry.name, entry.oracle_id, 1)
-                for entry in deck.cards
-                if entry.name == chosen
-            ]
+        deck = read_deck(path, lookup, read, write)
         report = validate(deck, lookup)  # needs the lookup, so it runs inside the with
 
     write(f"Deck: {deck.total} cards")

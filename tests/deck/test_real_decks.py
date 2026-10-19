@@ -8,6 +8,7 @@ import pytest
 from fishbowl.deck.lookup import CardLookup
 from fishbowl.deck.parser import parse_deck
 from fishbowl.deck.validator import validate
+from fishbowl.stats.lands import library_counts
 
 REAL_DB = Path("data") / "cards.db"
 DECKS = Path(__file__).parent.parent / "decks"
@@ -73,3 +74,13 @@ def test_real_deck_is_legal(filename):
         report = validate(parse_deck(text, lookup), lookup)
     assert report.errors == []
     assert report.notes[0].message == "Game Changers: 0"
+
+
+@pytest.mark.parametrize(
+    ("filename", "expected"),
+    [("goreclaw.txt", (33, 99)), ("ghalta.txt", (39, 99)), ("krenko.txt", (33, 99))],
+)
+def test_real_deck_library_counts(filename, expected):
+    text = (DECKS / filename).read_text(encoding="utf-8")
+    with CardLookup(REAL_DB) as lookup:
+        assert library_counts(parse_deck(text, lookup), lookup) == expected
