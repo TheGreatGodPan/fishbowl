@@ -4,8 +4,13 @@ Run it with:  uv run python -m fishbowl.stats.mulligan <decklist.txt>
 """
 
 import random
+import sys
+from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
+from fishbowl.deck.lookup import DEFAULT_DB, CardLookup
+from fishbowl.deck.parser import find_deck_file, read_deck
 from fishbowl.stats.lands import (
     HAND_SIZE,
     LAND_DROP_TURNS,
@@ -16,9 +21,11 @@ from fishbowl.stats.lands import (
     _check,
     exact_at_least,
     exact_exactly,
+    library_counts,
 )
 
 BOTTOM_ABOVE = 3  # with more lands than this, bottom a land; otherwise a spell
+CARDS_NEEDED = HAND_SIZE + LAND_DROP_TURNS[-1]  # a 7-card hand plus a draw per turn
 
 
 def hand_sizes(free_first: bool = True) -> tuple[int, ...]:
@@ -101,7 +108,7 @@ def mulligan_odds(
 ) -> MulliganOdds:
     """Which hand size gets kept and how land drops fare, exact and simulated."""
     # Enough cards for a 7-card hand plus a draw every turn we track.
-    most = HAND_SIZE + LAND_DROP_TURNS[-1]
+    most = CARDS_NEEDED
     if library < most:
         raise ValueError(f"library of {library} cards is too small to see {most}")
     _check(lands, library, most)  # fail before the slow simulation, not after
@@ -148,3 +155,60 @@ def mulligan_odds(
         for i, turn in enumerate(LAND_DROP_TURNS)
     ]
     return MulliganOdds(keep_rows, hand_size, drop_rows)
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+) -> int:
+    """Print exact and simulated mulligan odds for a decklist file."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.mulligan <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        lands, library = library_counts(deck, lookup)
+
+    # Too few cards to see every turn: say so plainly instead of crashing.
+    if library < CARDS_NEEDED:
+        write(
+            f"Only {library} cards in the library; at least {CARDS_NEEDED} are needed "
+            f"to see {LAND_DROP_TURNS[-1]} turns."
+        )
+        return 1
+
+    who = " + ".join(entry.name for entry in deck.commanders)
+    if not who:
+        write(f"No commander chosen: using all {library} cards as the library.")
+        who = "Deck"
+    write(
+        f"{who}: {lands} lands in a {library}-card library ({trials:,} simulated games, seed {SEED}; "
+        "multiplayer: everyone draws on turn 1)"
+    )
+    write("Mulligans: free first mulligan; keep 2-5 lands; always keep at 5")
+    if deck.problems:
+        count = len(deck.problems)
+        lines = "1 line" if count == 1 else f"{count} lines"
+        write(f"Note: {lines} couldn't be read; the odds use the cards that could.")
+
+    odds = mulligan_odds(lands, library, trials=trials)
+    write("")
+    write(f"{'Keep rates':<26}{'exact':>8}{'simulated':>11}")
+    for row in odds.keep_rows:
+        write(f"{row.label:<26}{row.exact:>8.1%}{row.simulated:>11.1%}")
+    size = odds.hand_size  # a count of cards, not a percentage
+    write(f"{size.label:<26}{size.exact:>8.2f}{size.simulated:>11.2f}")
+    write("")
+    write(f"{'Land drops':<26}{'no mulligan':>13}{'with mulligans':>16}")
+    for row in odds.drop_rows:
+        write(f"{row.label:<26}{row.exact:>13.1%}{row.simulated:>16.1%}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
