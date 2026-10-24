@@ -8,6 +8,7 @@ import pytest
 from fishbowl.deck.lookup import CardLookup
 from fishbowl.deck.parser import parse_deck
 from fishbowl.deck.validator import validate
+from fishbowl.stats.groups import find_groups
 from fishbowl.stats.lands import library_counts
 
 REAL_DB = Path("data") / "cards.db"
@@ -84,3 +85,28 @@ def test_real_deck_library_counts(filename, expected):
     text = (DECKS / filename).read_text(encoding="utf-8")
     with CardLookup(REAL_DB) as lookup:
         assert library_counts(parse_deck(text, lookup), lookup) == expected
+
+
+def test_real_groups():
+    def groups_for(filename):
+        text = (DECKS / filename).read_text(encoding="utf-8")
+        with CardLookup(REAL_DB) as lookup:
+            dorks, tutors = find_groups(parse_deck(text, lookup), lookup)
+        return dorks, tutors
+
+    goreclaw_dorks, goreclaw_tutors = groups_for("goreclaw.txt")
+    assert goreclaw_dorks.names == [
+        "Elvish Mystic",
+        "Fanatic of Rhonas",
+        "Fyndhorn Elves",
+        "Karametra's Acolyte",
+        "Llanowar Elves",
+        "Selvala, Heart of the Wilds",
+        "Whisperer of the Wilds",
+    ]
+    for land_search in ("Nature's Lore", "Three Visits", "Skyshroud Claim"):
+        assert land_search not in goreclaw_tutors.names
+
+    _, krenko_tutors = groups_for("krenko.txt")
+    assert "Goblin Matron" in krenko_tutors.names
+    assert "Goblin Recruiter" in krenko_tutors.names
