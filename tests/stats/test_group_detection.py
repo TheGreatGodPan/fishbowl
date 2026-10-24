@@ -114,3 +114,28 @@ def test_commander_not_counted(lookup):
     ]
     _, tutors = find_groups(deck, lookup)
     assert (tutors.count, tutors.names) == (0, [])
+
+
+def test_treasure_reminder_text_is_not_a_dork():
+    dockside = card(
+        "Dockside Extortionist",
+        "Creature — Goblin Pirate",
+        "When this creature enters, create X Treasure tokens, where X is the number "
+        "of artifacts and enchantments your opponents control. "
+        '(A Treasure is an artifact with "{T}, Sacrifice this artifact: Add one '
+        'mana of any color.")',
+    )
+    llanowar = card("Llanowar Elves", "Creature — Elf Druid", "{T}: Add {G}.")
+    assert not is_mana_dork(dockside)
+    assert is_mana_dork(llanowar)
+
+
+def test_quoted_granted_ability_is_not_a_dork():
+    goldspan = card(
+        "Goldspan Dragon",
+        "Creature — Dragon",
+        "Flying, haste\nWhenever this creature attacks or becomes the target of a "
+        "spell, create a Treasure token.\nTreasures you control have "
+        '"{T}, Sacrifice this artifact: Add two mana of any one color."',
+    )
+    assert not is_mana_dork(goldspan)

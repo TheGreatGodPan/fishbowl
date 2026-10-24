@@ -5,11 +5,23 @@ Run it with:  uv run python -m fishbowl.stats.groups <decklist.txt>
 
 import random
 import re
+import sys
+import textwrap
+from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
-from fishbowl.deck.lookup import Card, CardLookup
+from fishbowl.deck.lookup import DEFAULT_DB, Card, CardLookup
 from fishbowl.deck.model import ParsedDeck
-from fishbowl.stats.lands import HAND_SIZE, SEED, TRIALS, _check, exact_at_least
+from fishbowl.deck.parser import find_deck_file, read_deck
+from fishbowl.stats.lands import (
+    HAND_SIZE,
+    SEED,
+    TRIALS,
+    _check,
+    exact_at_least,
+    library_counts,
+)
 
 # Cards seen: the opening hand, then by turns 1, 2 and 3 (one draw per turn).
 CHECKPOINTS = (7, 8, 9, 10)
@@ -20,6 +32,11 @@ _STEPS = (-4, -2, 0, 2, 4)
 # "{T}" then anything but a full stop, then ": Add ": a mana ability that taps.
 # Stopping at "." keeps "{T}: Untap target Forest. ... Add" style text from matching.
 _DORK_ABILITY = re.compile(r"\{T\}[^.]*: Add ")
+
+# Reminder text sits in parentheses, and granted abilities sit in double quotes, e.g.
+# Goldspan Dragon: Treasures you control have "{T}, Sacrifice ...: Add ...".
+# Both describe other permanents rather than this card, so dork checks skip them.
+_NOT_OWN_ABILITY = re.compile(r"\([^)]*\)|\"[^\"]*\"")
 
 # Searching for these is ramp or fixing, not tutoring, so it doesn't count as a tutor.
 _LAND_WORDS = ("land", "plains", "island", "swamp", "mountain", "forest")
@@ -33,7 +50,9 @@ def is_mana_dork(card: Card) -> bool:
     front = (card.type_line or "").split(" // ")[0]
     if "Creature" not in front.split():  # whole word, so a longer type can't match
         return False
-    return _DORK_ABILITY.search(card.oracle_text or "") is not None
+    # re.sub replaces every match of the pattern; here it deletes that text
+    text = _NOT_OWN_ABILITY.sub("", card.oracle_text or "")
+    return _DORK_ABILITY.search(text) is not None
 
 
 def is_tutor(card: Card) -> bool:
@@ -131,3 +150,71 @@ def what_if(
             )
         )
     return rows
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+) -> int:
+    """Print the mana dorks and tutors in a decklist, with what-if odds for each."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.groups <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        _, library = library_counts(deck, lookup)
+        groups = find_groups(deck, lookup)  # needs the lookup, so it stays in here
+
+    # Too few cards to see every checkpoint: say so plainly instead of crashing.
+    if library < CHECKPOINTS[-1]:
+        write(
+            f"Only {library} cards in the library; at least {CHECKPOINTS[-1]} are "
+            f"needed to see {len(CHECKPOINTS) - 1} turns."
+        )
+        return 1
+
+    who = " + ".join(entry.name for entry in deck.commanders)
+    if not who:
+        write(f"No commander chosen: using all {library} cards as the library.")
+        who = "Deck"
+    write(
+        f"{who}: {library}-card library ({trials:,} simulated hands, seed {SEED}; "
+        "multiplayer: everyone draws on turn 1)"
+    )
+    if deck.problems:
+        count = len(deck.problems)
+        lines = "1 line" if count == 1 else f"{count} lines"
+        write(f"Note: {lines} couldn't be read; the odds use the cards that could.")
+
+    for group in groups:
+        write("")
+        if group.count:
+            write(f"{group.name}: {group.count} in the library")
+            # textwrap.wrap splits long text into lines of at most `width` characters
+            for line in textwrap.wrap(", ".join(group.names), width=76):
+                write(f"  {line}")
+        else:
+            write(f"{group.name}: none found")
+        write("")
+        write(
+            f"{'At least one':<22}{'opening':>9}{'turn 1':>9}{'turn 2':>9}"
+            f"{'turn 3':>9}{'sim. opening':>13}"
+        )
+        for row in what_if(group.count, library, trials=trials):
+            label = f"  {row.count} {group.unit if row.count == 1 else group.units}"
+            if row.is_current:
+                label += " (yours)"
+            line = f"{label:<22}" + "".join(f"{chance:>9.0%}" for chance in row.chances)
+            if row.simulated is not None:
+                line += f"{row.simulated:>13.1%}"
+            write(line)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

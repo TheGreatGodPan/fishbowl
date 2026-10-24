@@ -186,7 +186,7 @@ Roadmap: split Stage 4's remaining work, in the 4a/4b style:
 Stage 4 stays 🔄.
 
 - [ ] **Step 1: Write the failing tests** in `tests/stats/test_groups_main.py`. Copy the `run` helper from `tests/stats/test_lands_main.py`, changing the import. The tests:
-  - `test_prints_groups`: deck `Commander: Goreclaw`, `1 Goreclaw…`, `1 Survival of the Fittest`, `33 Forest`, `64 Sol Ring`. Checks:
+  - `test_prints_groups`: deck `Commander: Goreclaw`, `1 Goreclaw…`, `1 Survival of the Fittest`, `33 Forest`, `65 Sol Ring`. Checks:
     - returns 0
     - `shown[0]` is the header with `99-card library (2,000 simulated hands`
     - `"Mana dorks: none found"` is shown
