@@ -57,6 +57,14 @@ def test_front_face_name_finds_double_faced_card(card_db):
     assert card.name == "Witch Enchanter // Witch-Blessed Meadow"
 
 
+def test_double_faced_card_takes_cost_from_front_face(card_db):
+    # Scryfall leaves the top-level mana_cost empty for double-faced cards.
+    with CardLookup(card_db) as lookup:
+        card = lookup.find("Witch Enchanter")
+    assert card is not None
+    assert card.mana_cost == "{3}{W}"
+
+
 def test_unknown_name_gives_none(card_db):
     with CardLookup(card_db) as lookup:
         assert lookup.find("Sol Rnig") is None

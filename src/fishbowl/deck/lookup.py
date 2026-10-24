@@ -7,10 +7,14 @@ from typing import Self
 
 DEFAULT_DB = Path("data") / "cards.db"
 
+# Why COALESCE: Scryfall leaves the top-level mana_cost NULL for double-faced cards, so
+# fall back to the front face's cost. (SQL concepts: COALESCE returns the first
+# non-NULL value; json_extract reads one field out of JSON text.)
 _FIELDS = (
     "c.oracle_id, c.name, c.type_line, c.oracle_text, "
     "c.color_identity, c.commander_status, c.is_game_changer, "
-    "c.mana_cost, c.cmc, c.produced_mana"
+    "COALESCE(c.mana_cost, json_extract(c.card_faces, '$[0].mana_cost')), "
+    "c.cmc, c.produced_mana"
 )
 _BY_NAME = f"SELECT {_FIELDS} FROM cards AS c WHERE c.name = ? COLLATE NOCASE"
 # The alias column is declared COLLATE NOCASE, so this match ignores case too.

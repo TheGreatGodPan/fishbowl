@@ -18,6 +18,7 @@ GORECLAW = "Goreclaw, Terror of Qal Sisma"
         ("{10}{G}{G}", {"G": 2}),
         ("{1}{G/W}", {}),
         ("{X}{U}{B}", {"U": 1, "B": 1}),
+        ("{8}{C}{C}", {"C": 2}),
         (None, {}),
         ("", {}),
     ],

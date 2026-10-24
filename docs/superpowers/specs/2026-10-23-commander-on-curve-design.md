@@ -23,6 +23,7 @@ Stage 4 is now 4a (lands), 4b (mulligans), 4c (card groups), 4d (this), and 4e (
 - An exact formula for the colour row. It needs the multivariate hypergeometric distribution, which isn't worth learning yet.
 - Charts (4e).
 - Fetch lands (Evolving Wilds and similar, with an empty `produced_mana`) as colour sources.
+- Pathway lands (one colour chosen on play) count for both colours, the same approximation as decision 5.
 
 ## Decisions
 
@@ -30,7 +31,7 @@ Stage 4 is now 4a (lands), 4b (mulligans), 4c (card groups), 4d (this), and 4e (
 |---|---|---|---|
 | 1 | New card data | Add `mana_cost: str \| None = None`, `cmc: float \| None = None` and `produced_mana: str = ""` to the end of `Card` in `deck/lookup.py`, with defaults, and select them in `_FIELDS`. | The database already has these columns (`produced_mana` is WUBRGC letters, e.g. "G"). With defaults, existing `Card(...)` calls keep working. |
 | 2 | Mana value | M = `int(cmc)`. X counts as 0, following Scryfall's `cmc`. | Scryfall's own number. |
-| 3 | Pips | Count the plain single-colour symbols `{W}`, `{U}`, `{B}`, `{R}`, `{G}` in the commander's `mana_cost`. Hybrid, Phyrexian and generic symbols add no colour requirement. *(My call; none of Ian's commanders has them.)* | |
+| 3 | Pips | Count the plain single-colour symbols `{W}`, `{U}`, `{B}`, `{R}`, `{G}` in the commander's `mana_cost`. `{C}` pips count against colourless sources (`produced_mana` "C"). Hybrid, Phyrexian and generic symbols add no colour requirement. *(My call; none of Ian's commanders has them.)* | |
 | 4 | Turn and cards seen | By turn M, 7 + M cards are seen (multiplayer draws, as in 4a). | Same rule as 4a's land drops. |
 | 5 | Colour check | Each colour is checked on its own: sources of that colour among the seen lands ≥ its pips. A dual land counts for both colours. *(My call: exact for mono-colour costs. For multi-colour costs it slightly overstates, because one dual can't pay two pips at once. This is noted on screen as "approximate for multi-colour costs" when the cost has 2 or more colours.)* | |
 | 6 | Lands' colours in the simulation | Number the library 0..N−1. Cards 0..L−1 are lands, and each has its `produced_mana` string in a list built from the deck (one entry per copy, commanders excluded as in `library_counts`). | It extends 4a's numbering trick. |
@@ -42,7 +43,7 @@ Stage 4 is now 4a (lands), 4b (mulligans), 4c (card groups), 4d (this), and 4e (
 | 13 | Commander's card | Each commander comes from `deck.commanders` (a `DeckEntry` with a name) and is looked up with `lookup.find`. If the lookup fails, or `cmc` is `None`, or M = 0, the command prints "{name}: no mana cost found; skipped" for that commander. *(My call.)* | |
 | 14 | Simulation | A new small loop: `rng.sample(range(N), 7 + M)` per trial, with its own `random.Random(seed)` per commander. It doesn't reuse `land_odds`. | |
 | 15 | Too big to cast | `main` checks 7 + M ≤ N itself and prints the decision-8 message. The maths function raises `ValueError` like the others, but `main` never triggers it. The Ghalta M = 12 agreement test is a plain unit test on numbers (39, 99), not a real-DB test. | |
-| 10 | No commander | Print "No commander chosen: nothing to cast on curve." and exit 0, after the usual unreadable-lines note. | There's nothing to compute. |
+| 10 | No commander | Print "Nothing to cast on curve." and exit 0, after the usual unreadable-lines note. | There's nothing to compute. |
 
 ## Command
 
