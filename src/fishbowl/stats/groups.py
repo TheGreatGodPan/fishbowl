@@ -3,11 +3,18 @@
 Run it with:  uv run python -m fishbowl.stats.groups <decklist.txt>
 """
 
+import random
 import re
 from dataclasses import dataclass
 
 from fishbowl.deck.lookup import Card, CardLookup
 from fishbowl.deck.model import ParsedDeck
+from fishbowl.stats.lands import HAND_SIZE, SEED, TRIALS, _check, exact_at_least
+
+# Cards seen: the opening hand, then by turns 1, 2 and 3 (one draw per turn).
+CHECKPOINTS = (7, 8, 9, 10)
+# The what-if table shows the current count and these steps either side of it.
+_STEPS = (-4, -2, 0, 2, 4)
 
 # re.compile builds the pattern once, instead of on every card checked.
 # "{T}" then anything but a full stop, then ": Add ": a mana ability that taps.
@@ -74,3 +81,53 @@ def find_groups(deck: ParsedDeck, lookup: CardLookup) -> list[CardGroup]:
         CardGroup("Mana dorks", "dork", "dorks", dork_count, sorted(dork_names)),
         CardGroup("Tutors", "tutor", "tutors", tutor_count, sorted(tutor_names)),
     ]
+
+
+@dataclass(frozen=True)
+class WhatIfRow:
+    """Odds of seeing at least one group card, if the deck held `count` of them."""
+
+    count: int
+    chances: list[float]  # exact, one per checkpoint
+    simulated: float | None  # opening hand only, and only for the current row
+    is_current: bool
+
+
+def what_if(
+    count: int, library: int, trials: int = TRIALS, seed: int = SEED
+) -> list[WhatIfRow]:
+    """Odds of at least one group card by each checkpoint, for the current count
+    and for a few more or fewer copies. Rows run from the lowest count to the highest."""
+    most = CHECKPOINTS[-1]
+    if library < most:
+        raise ValueError(f"library of {library} cards is too small to see {most}")
+    _check(count, library, most)  # fail before the slow simulation, not after
+    if trials < 1:
+        raise ValueError("trials must be at least 1")
+
+    # Simulate the current count only: numbers below `count` are the group cards,
+    # as in land_odds. A hit is any group card in the opening hand.
+    rng = random.Random(seed)
+    hits = 0
+    for _ in range(trials):
+        hand = rng.sample(range(library), HAND_SIZE)
+        if any(card < count for card in hand):
+            hits += 1
+
+    rows = []
+    for step in _STEPS:
+        row_count = count + step
+        if not 0 <= row_count <= library:  # drop rows that make no sense
+            continue
+        is_current = step == 0
+        rows.append(
+            WhatIfRow(
+                count=row_count,
+                chances=[
+                    exact_at_least(1, row_count, library, seen) for seen in CHECKPOINTS
+                ],
+                simulated=hits / trials if is_current else None,
+                is_current=is_current,
+            )
+        )
+    return rows

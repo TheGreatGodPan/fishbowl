@@ -82,7 +82,7 @@ A group with no matches prints "Tutors: none found" and still shows its what-if 
   - Goreclaw dorks are exactly the 7 names above.
   - Krenko tutors include Goblin Matron and Goblin Recruiter.
   - Goreclaw tutors don't include Nature's Lore, Three Visits or Skyshroud Claim.
-- What-if: the rows are current −4..+4 by 2, clipped at 0 and at the library size. 7 dorks of 99 in the opening hand = 41% (40.6%). Larger counts never give a lower chance.
+- What-if: the rows are current −4..+4 by 2, clipped at 0 and at the library size. 7 dorks of 99 in the opening hand = 41% (41.2%). Larger counts never give a lower chance.
 - Simulated within 0.01 of exact for the current row. The same seed gives the same result.
 - `main`: prints both groups, the matched names, and the "(yours)" marker; the tiny-deck message; the notes.
 

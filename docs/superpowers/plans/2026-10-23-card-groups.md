@@ -131,7 +131,7 @@ git commit -m "Detect mana dorks and tutors from card text (Stage 4c)"
   - `test_rows_clipped_at_library`: the counts for `what_if(10, 12, trials=100)` are `[6, 8, 10, 12]`. The 12 row's chances are all 1.0.
   - `test_exact_values`: for the 7-of-99 row:
     - `chances[0] == pytest.approx(exact_at_least(1, 7, 99, 7))`
-    - `round(chances[0], 3) == 0.406`
+    - `round(chances[0], 3) == 0.412`
     - `chances` is non-decreasing along the checkpoints
     - each column is non-decreasing as the count rises
   - `test_simulated_matches_exact`: for counts 0, 2, 7 and 12 of 99, using the default trials, `abs(current.simulated - current.chances[0]) < 0.01`.
