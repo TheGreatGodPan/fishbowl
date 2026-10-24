@@ -9,7 +9,8 @@ DEFAULT_DB = Path("data") / "cards.db"
 
 _FIELDS = (
     "c.oracle_id, c.name, c.type_line, c.oracle_text, "
-    "c.color_identity, c.commander_status, c.is_game_changer"
+    "c.color_identity, c.commander_status, c.is_game_changer, "
+    "c.mana_cost, c.cmc, c.produced_mana"
 )
 _BY_NAME = f"SELECT {_FIELDS} FROM cards AS c WHERE c.name = ? COLLATE NOCASE"
 # The alias column is declared COLLATE NOCASE, so this match ignores case too.
@@ -31,6 +32,10 @@ class Card:
     color_identity: str  # WUBRG letters, "" if colorless
     commander_status: str  # "legal", "banned", "not_legal", ...
     is_game_changer: bool
+    # Added last, with defaults, so older Card(...) calls with 7 values still work.
+    mana_cost: str | None = None  # "{2}{R}{R}", None for some double-faced cards
+    cmc: float | None = None  # mana value
+    produced_mana: str = ""  # WUBRGC letters the card can make, "" if none
 
 
 class CardLookup:
@@ -55,8 +60,16 @@ class CardLookup:
             row = self._connection.execute(_BY_ALIAS, (name,)).fetchone()
         if row is None:
             return None
-        *fields, game_changer = row
-        return Card(*fields, is_game_changer=bool(game_changer))  # SQLite stores 1/0
+        # Unpack by position (the column order is _FIELDS): the first six fields,
+        # then is_game_changer, then the three cost and mana fields.
+        *fields, game_changer, mana_cost, cmc, produced_mana = row
+        return Card(
+            *fields,
+            is_game_changer=bool(game_changer),  # SQLite stores 1/0
+            mana_cost=mana_cost,
+            cmc=cmc,
+            produced_mana=produced_mana,
+        )
 
     def close(self) -> None:
         self._connection.close()

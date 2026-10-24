@@ -19,6 +19,9 @@ def test_finds_exact_name(card_db):
         color_identity="",
         commander_status="legal",
         is_game_changer=False,
+        mana_cost="{1}",
+        cmc=1.0,
+        produced_mana="C",
     )
 
 

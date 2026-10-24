@@ -8,6 +8,7 @@ import pytest
 from fishbowl.deck.lookup import CardLookup
 from fishbowl.deck.parser import parse_deck
 from fishbowl.deck.validator import validate
+from fishbowl.stats.curve import colour_pips, land_colours
 from fishbowl.stats.groups import find_groups
 from fishbowl.stats.lands import library_counts
 
@@ -110,3 +111,22 @@ def test_real_groups():
     _, krenko_tutors = groups_for("krenko.txt")
     assert "Goblin Matron" in krenko_tutors.names
     assert "Goblin Recruiter" in krenko_tutors.names
+
+
+@pytest.mark.parametrize(
+    ("filename", "expected"),
+    [
+        ("goreclaw.txt", (4, {"G": 1})),
+        ("krenko.txt", (4, {"R": 2})),
+        ("ghalta.txt", (12, {"G": 2})),
+    ],
+)
+def test_real_curve(filename, expected):
+    text = (DECKS / filename).read_text(encoding="utf-8")
+    with CardLookup(REAL_DB) as lookup:
+        deck = parse_deck(text, lookup)
+        commander = lookup.find(deck.commanders[0].name)
+        assert commander is not None
+        assert commander.cmc is not None
+        assert (int(commander.cmc), colour_pips(commander.mana_cost)) == expected
+        assert len(land_colours(deck, lookup)) == library_counts(deck, lookup)[0]
