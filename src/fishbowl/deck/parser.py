@@ -258,7 +258,7 @@ def find_deck_file(
         return None
     if not db_path.is_file():
         write(f"No card database at {db_path}. Build it first with:")
-        write("  uv run python -m fishbowl.data.refresh")
+        write("  uv run fishbowl refresh")
         return None
     return path
 

@@ -178,7 +178,7 @@ def main(
         print(
             f"No printings file at {printings}: alternate printed names won't be recognized."
         )
-        print("  Run: uv run python -m fishbowl.data.refresh")
+        print("  Run: uv run fishbowl refresh")
     written, skipped = build_database(
         source, dest, printings if printings.is_file() else None
     )

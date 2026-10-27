@@ -88,7 +88,7 @@ def test_missing_database_explains_what_to_do(tmp_path):
     deck.write_text("1 Sol Ring\n", encoding="utf-8")
     code, shown = run([str(deck)], tmp_path / "no.db")
     assert code == 1
-    assert "  uv run python -m fishbowl.data.refresh" in shown
+    assert "  uv run fishbowl refresh" in shown
 
 
 def test_whole_list_problem_prints_without_a_line_number(tmp_path, card_db):
