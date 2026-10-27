@@ -14,6 +14,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import PercentFormatter
 
+from fishbowl.stats.groups import CHECKPOINTS, CardGroup, WhatIfRow
 from fishbowl.stats.mulligan import MulliganOdds
 
 # Colours live in one place so every chart looks like part of the same family.
@@ -24,6 +25,16 @@ TITLE_TEXT = "#0b0b0b"
 BODY_TEXT = "#52514e"
 NO_MULLIGAN = "#2a78d6"
 WITH_MULLIGANS = "#eb6834"
+# Card-group lines are one blue family, darker for more copies. The colour is
+# keyed by how far a row is from the deck's real count, not by its position.
+OFFSET_COLOURS = {
+    -4: "#86b6ef",
+    -2: "#5598e7",
+    0: "#2a78d6",
+    2: "#1c5cab",
+    4: "#104281",
+}
+CHECKPOINT_LABELS = ["Opening", "Turn 1", "Turn 2", "Turn 3"]
 
 FIGSIZE = (8, 4.5)  # inches; with dpi=150 this is a 1200 x 675 pixel image
 DPI = 150
@@ -107,4 +118,49 @@ def land_drop_chart(odds: MulliganOdds, title: str) -> Figure:
     ax.legend(loc="lower right", frameon=False, labelcolor=BODY_TEXT)
     # Leave room on the right for the end labels, which sit outside the axes.
     fig.subplots_adjust(right=0.82)
+    return fig
+
+
+def card_group_chart(
+    groups: list[CardGroup], rows_by_group: list[list[WhatIfRow]], title: str
+) -> Figure:
+    """One panel per card group: chance of seeing at least one, by checkpoint,
+    for the current count and a few more or fewer copies."""
+    # subplots(1, 2): one row of two panels. sharey=True makes them share the
+    # y-axis, so the odds in different panels are directly comparable.
+    fig, _ = plt.subplots(
+        1,
+        len(groups),
+        sharey=True,
+        figsize=FIGSIZE,
+        dpi=DPI,
+        facecolor=BACKGROUND,
+    )
+    xs = list(range(len(CHECKPOINTS)))
+    for ax, group, rows in zip(fig.axes, groups, rows_by_group, strict=True):
+        _style_axes(ax)
+        current = next(row.count for row in rows if row.is_current)
+        for row in rows:
+            offset = row.count - current
+            ax.plot(
+                xs,
+                row.chances,
+                color=OFFSET_COLOURS[offset],
+                linewidth=3 if row.is_current else 2,
+                marker="o",
+                markersize=5,
+            )
+            label = f"{row.count} {group.unit if row.count == 1 else group.units}"
+            if row.is_current:
+                label += " (yours)"
+            _label_line_end(ax, xs[-1], row.chances[-1], label)
+        found = f"({group.count})" if group.count else "(none found)"
+        ax.set_title(f"{group.name} {found}", color=TITLE_TEXT, fontsize=10)
+        ax.set_xticks(xs, CHECKPOINT_LABELS)
+        # A little extra room on the right keeps labels off the next panel.
+        ax.set_xlim(-0.2, xs[-1] + 0.2)
+    fig.axes[0].set_ylabel("Chance of at least one")
+    # suptitle = the title over the whole figure, above the panel titles.
+    fig.suptitle(title, color=TITLE_TEXT)
+    fig.subplots_adjust(left=0.09, right=0.84, wspace=0.55, bottom=0.12)
     return fig
