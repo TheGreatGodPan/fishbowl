@@ -1,7 +1,11 @@
-"""PNG charts of the stats: land drops (and, later, card groups).
+"""PNG charts of the stats: land drops and card groups.
 
 Run it with:  uv run python -m fishbowl.stats.charts <decklist.txt>
 """
+
+import sys
+from collections.abc import Callable
+from pathlib import Path
 
 import matplotlib
 
@@ -14,8 +18,17 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from matplotlib.ticker import PercentFormatter
 
-from fishbowl.stats.groups import CHECKPOINTS, CardGroup, WhatIfRow
-from fishbowl.stats.mulligan import MulliganOdds
+from fishbowl.deck.lookup import DEFAULT_DB, CardLookup
+from fishbowl.deck.parser import find_deck_file, read_deck
+from fishbowl.stats.groups import (
+    CHECKPOINTS,
+    CardGroup,
+    WhatIfRow,
+    find_groups,
+    what_if,
+)
+from fishbowl.stats.lands import LAND_DROP_TURNS, TRIALS, library_counts
+from fishbowl.stats.mulligan import CARDS_NEEDED, MulliganOdds, mulligan_odds
 
 # Colours live in one place so every chart looks like part of the same family.
 BACKGROUND = "#fcfcfb"
@@ -164,3 +177,62 @@ def card_group_chart(
     fig.suptitle(title, color=TITLE_TEXT)
     fig.subplots_adjust(left=0.09, right=0.84, wspace=0.55, bottom=0.12)
     return fig
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+    out_dir: Path = Path("charts"),
+) -> int:
+    """Save the land-drop and card-group charts for a decklist as PNG files."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.charts <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        lands, library = library_counts(deck, lookup)
+        groups = find_groups(deck, lookup)  # needs the lookup, so it stays in here
+
+    # Too few cards to see every turn: say so, and write no files.
+    if library < CARDS_NEEDED:
+        write(
+            f"Only {library} cards in the library; at least {CARDS_NEEDED} are needed "
+            f"to see {LAND_DROP_TURNS[-1]} turns."
+        )
+        return 1
+
+    who = " + ".join(entry.name for entry in deck.commanders)
+    if not who:
+        write(f"No commander chosen: using all {library} cards as the library.")
+        who = "Deck"
+    if deck.problems:
+        count = len(deck.problems)
+        lines = "1 line" if count == 1 else f"{count} lines"
+        write(f"Note: {lines} couldn't be read; the odds use the cards that could.")
+
+    odds = mulligan_odds(lands, library, trials=trials)
+    rows_by_group = [what_if(group.count, library, trials=trials) for group in groups]
+    figures = {
+        out_dir / f"{path.stem}-land-drops.png": land_drop_chart(
+            odds, f"{who}: land drops, with and without mulligans"
+        ),
+        out_dir / f"{path.stem}-card-groups.png": card_group_chart(
+            groups, rows_by_group, f"{who}: at least one card from each group"
+        ),
+    }
+    # parents=True makes missing folders too; exist_ok=True allows re-running.
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for file, fig in figures.items():
+        fig.savefig(file, facecolor=BACKGROUND)
+        plt.close(fig)  # free the figure's memory once it's saved
+        write(f"Saved {file.as_posix()}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

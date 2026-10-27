@@ -45,8 +45,8 @@ Check: exactly 100 cards including commander(s); singleton by card name (basic l
 Concepts: sets, dictionaries, dataclasses, modules.
 **Done when:** valid decks pass and a deliberately broken deck fails with clear messages.
 
-### 🔄 Stage 4: Opening-hand stats
-Simulate thousands of shuffles and opening hands; compare with exact math (the hypergeometric formula with `math.comb`; done in Stage 4a: `uv run python -m fishbowl.stats.lands <decklist>`; mulligans done in Stage 4b: `uv run python -m fishbowl.stats.mulligan <decklist>`; card groups done in Stage 4c: `uv run python -m fishbowl.stats.groups <decklist>`; commander on curve done in Stage 4d: `uv run python -m fishbowl.stats.curve <decklist>`; Stage 4e (next): Matplotlib charts). Report P(2–5 lands in opening hand), P(land drop each turn 1–5), P(commander castable on curve). Mulligan rules: London mulligan, first mulligan free in multiplayer (configurable).
+### ✅ Stage 4: Opening-hand stats
+Simulate thousands of shuffles and opening hands; compare with exact math (the hypergeometric formula with `math.comb`; done in Stage 4a: `uv run python -m fishbowl.stats.lands <decklist>`; mulligans done in Stage 4b: `uv run python -m fishbowl.stats.mulligan <decklist>`; card groups done in Stage 4c: `uv run python -m fishbowl.stats.groups <decklist>`; commander on curve done in Stage 4d: `uv run python -m fishbowl.stats.curve <decklist>`; charts done in Stage 4e: `uv run python -m fishbowl.stats.charts <decklist>` (writes PNGs to `charts/`)). Report P(2–5 lands in opening hand), P(land drop each turn 1–5), P(commander castable on curve). Mulligan rules: London mulligan, first mulligan free in multiplayer (configurable).
 Concepts: randomness, loops at scale, simulation vs exact probability, Matplotlib charts.
 **Done when:** simulated and exact land probabilities agree within 1%.
 
