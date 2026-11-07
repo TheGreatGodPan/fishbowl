@@ -54,10 +54,11 @@ Concepts: randomness, loops at scale, simulation vs exact probability, Matplotli
 `fishbowl analyze mydeck.txt` using `typer`. README with install instructions. Commands: `uv run fishbowl refresh`, `check`, `lands`, `mulligan`, `groups`, `curve`, `charts`, and `analyze DECK [--charts]` (runs every report in one go). `uv run fishbowl --help` lists them.
 **Done when:** someone else can install and run it from the repo.
 
-### ⬜ Stage 6: Goldfish turns
+### ✅ Stage 6: Goldfish turns
 Simulate turns: draw, play a land, tap mana, cast spells, commander tax (+2 per previous cast from the command zone). Simplified card behaviors: lands, mana rocks, mana dorks, ramp spells, card draw, "generic spell". Unknown cards count as generic spells. Seeded randomness so any game can be replayed.
 Concepts: classes, game state as data, copying state.
 **Done when:** a hand plays out turn by turn and the log reads correctly.
+**Result:** `uv run fishbowl goldfish DECK [--seed N] [--turns N] [--games N]` prints one game's log, or with `--games` a commander-cast-by-turn summary compared with the 4d lands-only baseline.
 
 ### ⬜ Stage 7: Best 5-turn line
 Search every sensible play order and pick the best for a chosen goal (most mana on turn 5, earliest commander cast). The search must not "know" future draws: resample the unseen library at each draw. Add "card impact": how much each card helps or hurts the result.

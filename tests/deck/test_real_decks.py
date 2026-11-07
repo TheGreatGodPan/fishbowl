@@ -8,6 +8,7 @@ import pytest
 from fishbowl.deck.lookup import CardLookup
 from fishbowl.deck.parser import parse_deck
 from fishbowl.deck.validator import validate
+from fishbowl.sim.cards import deck_play_cards
 from fishbowl.stats.curve import colour_pips, land_colours
 from fishbowl.stats.groups import find_groups
 from fishbowl.stats.lands import library_counts
@@ -130,3 +131,52 @@ def test_real_curve(filename, expected):
         assert commander.cmc is not None
         assert (int(commander.cmc), colour_pips(commander.mana_cost)) == expected
         assert len(land_colours(deck, lookup)) == library_counts(deck, lookup)[0]
+
+
+def test_real_kinds():
+    def names_by_kind(filename):
+        text = (DECKS / filename).read_text(encoding="utf-8")
+        with CardLookup(REAL_DB) as lookup:
+            library, _ = deck_play_cards(parse_deck(text, lookup), lookup)
+        kinds: dict[str, set[str]] = {}
+        for play in library:
+            kinds.setdefault(play.kind, set()).add(play.name)
+        return kinds
+
+    goreclaw = names_by_kind("goreclaw.txt")
+    assert goreclaw["rock"] == {"Arcane Signet", "Sol Ring", "The Great Henge"}
+    assert goreclaw["dork"] == {
+        "Elvish Mystic",
+        "Fanatic of Rhonas",
+        "Fyndhorn Elves",
+        "Karametra's Acolyte",
+        "Llanowar Elves",
+        "Selvala, Heart of the Wilds",
+        "Whisperer of the Wilds",
+    }
+    assert goreclaw["ramp"] == {
+        "Cultivate",
+        "Kodama's Reach",
+        "Nature's Lore",
+        "Rampant Growth",
+        "Skyshroud Claim",
+        "Three Visits",
+    }
+    assert goreclaw["draw"] == {"Harmonize", "Shamanic Revelation"}
+
+    krenko = names_by_kind("krenko.txt")
+    assert krenko["rock"] == {"Arcane Signet", "Fire Diamond", "Sol Ring"}
+    assert krenko["draw"] == {"Faithless Looting", "Incinerating Blast"}
+
+    ghalta = names_by_kind("ghalta.txt")
+    assert ghalta["dork"] == {
+        "Birds of Paradise",
+        "Elvish Mystic",
+        "Fyndhorn Elves",
+        "Ilysian Caryatid",
+        "Llanowar Elves",
+        "Llanowar Tribe",
+        "Paradise Druid",
+        "Whisperer of the Wilds",
+    }
+    assert ghalta["rock"] == {"Commander's Sphere", "Sol Ring"}

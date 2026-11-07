@@ -62,7 +62,8 @@ To analyze your own deck, save it as a text file (one card per line, like `1 Sol
 | `groups DECK` | Shows the odds of seeing a mana dork or a tutor in your first few turns, and how adding or cutting a few would change them. |
 | `curve DECK` | Shows the odds of casting your commander on curve. |
 | `charts DECK` | Saves charts as PNG images in a `charts/` folder inside the folder you run it from. |
-| `analyze DECK` | Runs all of the above in one go. Add `--charts` to save the charts too. |
+| `analyze DECK` | Runs check, lands, mulligan, groups and curve in one go. Add `--charts` to save the charts too. |
+| `goldfish DECK` | Plays your first turns against an empty board and prints a turn-by-turn log. Add `--games 1000` to play many games and see how often your commander is cast by each turn, next to two lands-only baselines. |
 
 ## License
 

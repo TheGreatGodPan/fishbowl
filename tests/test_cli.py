@@ -165,3 +165,24 @@ def test_analyze_tiny_deck(tmp_path, card_db, monkeypatch):
     for heading in HEADINGS:
         assert heading in result.output
     assert "Only 8 cards in the library" in result.output
+
+
+def test_help_lists_goldfish():
+    result = runner.invoke(app, ["--help"])
+    assert "goldfish" in result.output
+
+
+def test_goldfish_command(tmp_path, card_db, monkeypatch):
+    monkeypatch.setattr(cli, "DB_PATH", card_db)
+    deck = write_deck(tmp_path)
+    result = runner.invoke(app, ["goldfish", str(deck), "--games", "50"])
+    assert result.exit_code == 0
+    assert "Commander cast by turn 4:" in result.output
+
+
+def test_goldfish_zero_games_is_usage_error(tmp_path, card_db, monkeypatch):
+    monkeypatch.setattr(cli, "DB_PATH", card_db)
+    deck = write_deck(tmp_path)
+    result = runner.invoke(app, ["goldfish", str(deck), "--games", "0"])
+    assert result.exit_code == 2  # typer's usage error: no traceback
+    assert not isinstance(result.exception, ValueError)
