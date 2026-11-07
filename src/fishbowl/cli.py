@@ -31,6 +31,7 @@ Deck = Annotated[Path, typer.Argument(help="Path to a decklist text file.")]
 def _finish(code: int) -> None:
     """Exit with the work's exit code, so shell scripts can check success."""
     # typer.Exit stops the command quietly with that code (no traceback).
+    # For code 0 there's nothing to do: returning normally makes typer exit with 0.
     if code != 0:
         raise typer.Exit(code)
 

@@ -50,8 +50,8 @@ Simulate thousands of shuffles and opening hands; compare with exact math (the h
 Concepts: randomness, loops at scale, simulation vs exact probability, Matplotlib charts.
 **Done when:** simulated and exact land probabilities agree within 1%.
 
-### ⬜ Stage 5: Command-line app
-`fishbowl analyze mydeck.txt` using `typer`. README with install instructions.
+### ✅ Stage 5: Command-line app
+`fishbowl analyze mydeck.txt` using `typer`. README with install instructions. Commands: `uv run fishbowl refresh`, `check`, `lands`, `mulligan`, `groups`, `curve`, `charts`, and `analyze DECK [--charts]` (runs every report in one go). `uv run fishbowl --help` lists them.
 **Done when:** someone else can install and run it from the repo.
 
 ### ⬜ Stage 6: Goldfish turns

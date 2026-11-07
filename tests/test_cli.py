@@ -83,10 +83,12 @@ def test_missing_db_hint(tmp_path, monkeypatch):
     assert "uv run fishbowl refresh" in result.output
 
 
-def test_missing_deck_file(tmp_path, card_db, monkeypatch):
+@pytest.mark.parametrize("command", ["lands", "analyze"])
+def test_missing_deck_file(tmp_path, card_db, monkeypatch, command):
     monkeypatch.setattr(cli, "DB_PATH", card_db)
-    result = runner.invoke(app, ["lands", str(tmp_path / "nope.txt")])
-    assert result.exit_code != 0
+    result = runner.invoke(app, [command, str(tmp_path / "nope.txt")])
+    assert result.exit_code == 1
+    assert "No such file" in result.output
     assert "nope.txt" in result.output
 
 

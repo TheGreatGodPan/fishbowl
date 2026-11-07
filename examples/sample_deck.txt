@@ -31,7 +31,7 @@
 1 Woodfall Primus
 1 End-Raze Forerunners
 1 Pelakka Wurm
-1 Primeval Titan
+1 Krosan Tusker
 1 Krosan Grip
 1 Natural Order
 1 Eternal Witness
