@@ -134,22 +134,14 @@ def library_counts(deck: ParsedDeck, lookup: CardLookup) -> tuple[int, int]:
     return lands, size
 
 
-def main(
-    argv: list[str] | None = None,
-    db_path: Path = DEFAULT_DB,
-    read: Callable[[str], str] = input,
-    write: Callable[[str], object] = print,
+def report(
+    deck: ParsedDeck,
+    lookup: CardLookup,
+    write: Callable[[str], object],
     trials: int = TRIALS,
 ) -> int:
-    """Print exact and simulated land odds for a decklist file."""
-    args = sys.argv[1:] if argv is None else argv
-    usage = "Usage: uv run python -m fishbowl.stats.lands <decklist.txt>"
-    path = find_deck_file(args, db_path, usage, write)
-    if path is None:
-        return 1
-    with CardLookup(db_path) as lookup:
-        deck = read_deck(path, lookup, read, write)
-        lands, library = library_counts(deck, lookup)
+    """Write exact and simulated land odds for a decklist file."""
+    lands, library = library_counts(deck, lookup)
 
     # Too few cards to see every turn: say so plainly instead of crashing.
     needed = _cards_seen(LAND_DROP_TURNS[-1], False)
@@ -179,6 +171,24 @@ def main(
             f"{row.label:<26}{row.exact:>8.1%}{row.simulated:>11.1%}"
         )  # .1% = percent, 1 decimal
     return 0
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+) -> int:
+    """Print exact and simulated land odds for a decklist file."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.lands <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        return report(deck, lookup, write, trials)
 
 
 if __name__ == "__main__":

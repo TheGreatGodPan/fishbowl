@@ -1,6 +1,8 @@
 """Tests for the land odds command: uv run python -m fishbowl.stats.lands <file>."""
 
-from fishbowl.stats.lands import main
+from fishbowl.deck.lookup import CardLookup
+from fishbowl.deck.parser import parse_deck
+from fishbowl.stats.lands import main, report
 
 GORECLAW = "Goreclaw, Terror of Qal Sisma"
 
@@ -84,3 +86,19 @@ def test_empty_file_gives_a_message_not_a_crash(tmp_path, card_db):
     assert (
         "Only 0 cards in the library; at least 12 are needed to see 5 turns." in shown
     )
+
+
+def test_report_matches_main(tmp_path, card_db):
+    path = tmp_path / "deck.txt"
+    path.write_text(
+        f"Commander: {GORECLAW}\n1 {GORECLAW}\n1 Survival of the Fittest\n"
+        "33 Forest\n65 Sol Ring\n",
+        encoding="utf-8",
+    )
+    expected_code, expected = run([str(path)], card_db)
+    shown: list[str] = []
+    with CardLookup(card_db) as lookup:
+        deck = parse_deck(path.read_text(encoding="utf-8"), lookup)
+        code = report(deck, lookup, shown.append, trials=2000)
+    assert code == expected_code
+    assert shown == expected

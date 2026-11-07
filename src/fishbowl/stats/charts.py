@@ -19,6 +19,7 @@ from matplotlib.figure import Figure
 from matplotlib.ticker import PercentFormatter
 
 from fishbowl.deck.lookup import DEFAULT_DB, CardLookup
+from fishbowl.deck.model import ParsedDeck
 from fishbowl.deck.parser import find_deck_file, read_deck
 from fishbowl.stats.groups import (
     CHECKPOINTS,
@@ -179,24 +180,17 @@ def card_group_chart(
     return fig
 
 
-def main(
-    argv: list[str] | None = None,
-    db_path: Path = DEFAULT_DB,
-    read: Callable[[str], str] = input,
-    write: Callable[[str], object] = print,
+def report(
+    deck: ParsedDeck,
+    lookup: CardLookup,
+    write: Callable[[str], object],
     trials: int = TRIALS,
     out_dir: Path = Path("charts"),
+    stem: str = "deck",
 ) -> int:
     """Save the land-drop and card-group charts for a decklist as PNG files."""
-    args = sys.argv[1:] if argv is None else argv
-    usage = "Usage: uv run python -m fishbowl.stats.charts <decklist.txt>"
-    path = find_deck_file(args, db_path, usage, write)
-    if path is None:
-        return 1
-    with CardLookup(db_path) as lookup:
-        deck = read_deck(path, lookup, read, write)
-        lands, library = library_counts(deck, lookup)
-        groups = find_groups(deck, lookup)  # needs the lookup, so it stays in here
+    lands, library = library_counts(deck, lookup)
+    groups = find_groups(deck, lookup)  # needs the lookup, so it stays in here
 
     # Too few cards to see every turn: say so, and write no files.
     if library < CARDS_NEEDED:
@@ -218,10 +212,10 @@ def main(
     odds = mulligan_odds(lands, library, trials=trials)
     rows_by_group = [what_if(group.count, library, trials=trials) for group in groups]
     figures = {
-        out_dir / f"{path.stem}-land-drops.png": land_drop_chart(
+        out_dir / f"{stem}-land-drops.png": land_drop_chart(
             odds, f"{who}: land drops, with and without mulligans"
         ),
-        out_dir / f"{path.stem}-card-groups.png": card_group_chart(
+        out_dir / f"{stem}-card-groups.png": card_group_chart(
             groups, rows_by_group, f"{who}: at least one card from each group"
         ),
     }
@@ -232,6 +226,25 @@ def main(
         plt.close(fig)  # free the figure's memory once it's saved
         write(f"Saved {file.as_posix()}")
     return 0
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+    out_dir: Path = Path("charts"),
+) -> int:
+    """Save the land-drop and card-group charts for a decklist as PNG files."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.charts <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        return report(deck, lookup, write, trials, out_dir, path.stem)
 
 
 if __name__ == "__main__":

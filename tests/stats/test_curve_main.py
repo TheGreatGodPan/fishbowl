@@ -2,8 +2,10 @@
 
 from dataclasses import replace
 
+from fishbowl.deck.lookup import CardLookup
+from fishbowl.deck.parser import parse_deck
 from fishbowl.stats import curve
-from fishbowl.stats.curve import main
+from fishbowl.stats.curve import main, report
 
 GORECLAW = "Goreclaw, Terror of Qal Sisma"
 LANDS_ONLY = "Lands only; ignores dorks, rocks and cost reducers."
@@ -126,3 +128,19 @@ def test_notes_for_big_and_multicolour(tmp_path, card_db, monkeypatch):
     assert code == 0
     assert "  Note: cost reducers aren't modelled." in shown
     assert "  Note: approximate for multi-colour costs." in shown
+
+
+def test_report_matches_main(tmp_path, card_db):
+    path = tmp_path / "deck.txt"
+    path.write_text(
+        f"Commander: {GORECLAW}\n1 {GORECLAW}\n1 Survival of the Fittest\n"
+        "33 Forest\n65 Sol Ring\n",
+        encoding="utf-8",
+    )
+    expected_code, expected = run([str(path)], card_db)
+    shown: list[str] = []
+    with CardLookup(card_db) as lookup:
+        deck = parse_deck(path.read_text(encoding="utf-8"), lookup)
+        code = report(deck, lookup, shown.append, trials=2000)
+    assert code == expected_code
+    assert shown == expected

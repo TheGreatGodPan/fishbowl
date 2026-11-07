@@ -1,6 +1,7 @@
 """Tests for the parser command: uv run python -m fishbowl.deck.parser <file>."""
 
-from fishbowl.deck.parser import main
+from fishbowl.deck.lookup import CardLookup
+from fishbowl.deck.parser import main, parse_deck, report
 
 GORECLAW = "Goreclaw, Terror of Qal Sisma"
 
@@ -122,3 +123,19 @@ def test_illegal_deck_lists_errors(tmp_path, card_db):
     assert "Legal: no (1 error)" in shown
     assert "Errors:" in shown
     assert "  2 copies of Sol Ring; only 1 allowed." in shown
+
+
+def test_report_matches_main(tmp_path, card_db):
+    path = tmp_path / "deck.txt"
+    path.write_text(
+        f"Commander: {GORECLAW}\n1 {GORECLAW}\n1 Survival of the Fittest\n"
+        "33 Forest\n65 Sol Ring\n",
+        encoding="utf-8",
+    )
+    expected_code, expected = run([str(path)], card_db)
+    shown: list[str] = []
+    with CardLookup(card_db) as lookup:
+        deck = parse_deck(path.read_text(encoding="utf-8"), lookup)
+        code = report(deck, lookup, shown.append)
+    assert code == expected_code
+    assert shown == expected

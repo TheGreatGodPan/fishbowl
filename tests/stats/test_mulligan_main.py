@@ -1,6 +1,8 @@
 """Tests for the mulligan command: uv run python -m fishbowl.stats.mulligan <file>."""
 
-from fishbowl.stats.mulligan import main
+from fishbowl.deck.lookup import CardLookup
+from fishbowl.deck.parser import parse_deck
+from fishbowl.stats.mulligan import main, report
 
 GORECLAW = "Goreclaw, Terror of Qal Sisma"
 
@@ -76,3 +78,19 @@ def test_usage_and_missing_file(tmp_path, card_db):
     code, shown = run([], card_db)
     assert code == 1
     assert shown == ["Usage: uv run python -m fishbowl.stats.mulligan <decklist.txt>"]
+
+
+def test_report_matches_main(tmp_path, card_db):
+    path = tmp_path / "deck.txt"
+    path.write_text(
+        f"Commander: {GORECLAW}\n1 {GORECLAW}\n1 Survival of the Fittest\n"
+        "33 Forest\n65 Sol Ring\n",
+        encoding="utf-8",
+    )
+    expected_code, expected = run([str(path)], card_db)
+    shown: list[str] = []
+    with CardLookup(card_db) as lookup:
+        deck = parse_deck(path.read_text(encoding="utf-8"), lookup)
+        code = report(deck, lookup, shown.append, trials=2000)
+    assert code == expected_code
+    assert shown == expected

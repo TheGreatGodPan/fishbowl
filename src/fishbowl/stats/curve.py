@@ -123,27 +123,19 @@ def _colour_row_label(pips: dict[str, int]) -> str:
     return "  ...and " + " and ".join(parts)
 
 
-def main(
-    argv: list[str] | None = None,
-    db_path: Path = DEFAULT_DB,
-    read: Callable[[str], str] = input,
-    write: Callable[[str], object] = print,
+def report(
+    deck: ParsedDeck,
+    lookup: CardLookup,
+    write: Callable[[str], object],
     trials: int = TRIALS,
 ) -> int:
-    """Print the odds of casting each commander on curve, from lands alone."""
-    args = sys.argv[1:] if argv is None else argv
-    usage = "Usage: uv run python -m fishbowl.stats.curve <decklist.txt>"
-    path = find_deck_file(args, db_path, usage, write)
-    if path is None:
-        return 1
-    with CardLookup(db_path) as lookup:
-        deck = read_deck(path, lookup, read, write)
-        lands, library = library_counts(deck, lookup)
-        colours = land_colours(deck, lookup)  # needs the lookup, so it stays in here
-        # Each commander's card (None if the name isn't in the database).
-        commander_cards = [
-            (entry.name, lookup.find(entry.name)) for entry in deck.commanders
-        ]
+    """Write the odds of casting each commander on curve, from lands alone."""
+    lands, library = library_counts(deck, lookup)
+    colours = land_colours(deck, lookup)  # needs the lookup, so it stays in here
+    # Each commander's card (None if the name isn't in the database).
+    commander_cards = [
+        (entry.name, lookup.find(entry.name)) for entry in deck.commanders
+    ]
 
     who = " + ".join(entry.name for entry in deck.commanders)
     if not who:
@@ -189,6 +181,24 @@ def main(
         if len(pips) >= 2:
             write("  Note: approximate for multi-colour costs.")
     return 0
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+) -> int:
+    """Print the odds of casting each commander on curve, from lands alone."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.curve <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        return report(deck, lookup, write, trials)
 
 
 if __name__ == "__main__":

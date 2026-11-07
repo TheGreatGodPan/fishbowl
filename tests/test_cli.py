@@ -96,3 +96,70 @@ def test_refresh_calls_refresh(monkeypatch):
     result = runner.invoke(app, ["refresh"])
     assert result.exit_code == 0
     assert len(calls) == 1
+
+
+HEADINGS = [
+    "== Deck check ==",
+    "== Land odds ==",
+    "== Mulligans ==",
+    "== Card groups ==",
+    "== Commander on curve ==",
+]
+
+
+def write_deck(tmp_path, text=DECK):
+    deck = tmp_path / "deck.txt"
+    deck.write_text(text, encoding="utf-8")
+    return deck
+
+
+def test_analyze_headings(tmp_path, card_db, monkeypatch):
+    monkeypatch.setattr(cli, "DB_PATH", card_db)
+    deck = write_deck(tmp_path)
+
+    result = runner.invoke(app, ["analyze", str(deck)])
+
+    shown: list[str] = []
+    check_code = parser.main([str(deck)], card_db, input, shown.append)
+    assert result.exit_code == check_code
+    positions = [result.output.index(heading) for heading in HEADINGS]
+    assert positions == sorted(positions)
+    assert "== Charts ==" not in result.output
+
+
+def test_analyze_asks_once(tmp_path, card_db, monkeypatch):
+    monkeypatch.setattr(cli, "DB_PATH", card_db)
+    deck = write_deck(
+        tmp_path, "1 Goreclaw, Terror of Qal Sisma\n33 Forest\n66 Sol Ring\n"
+    )
+
+    result = runner.invoke(app, ["analyze", str(deck)], input="1\n")
+
+    assert result.output.count("Which card is your commander?") == 1
+
+
+def test_analyze_charts(tmp_path, card_db, monkeypatch):
+    monkeypatch.setattr(cli, "DB_PATH", card_db)
+    monkeypatch.setattr(cli, "CHARTS_DIR", tmp_path / "charts")
+    deck = write_deck(tmp_path)
+
+    result = runner.invoke(app, ["analyze", str(deck), "--charts"])
+
+    assert "== Charts ==" in result.output
+    assert len(list((tmp_path / "charts").glob("*.png"))) == 2
+
+
+def test_analyze_tiny_deck(tmp_path, card_db, monkeypatch):
+    monkeypatch.setattr(cli, "DB_PATH", card_db)
+    deck = write_deck(
+        tmp_path,
+        "Commander: Goreclaw, Terror of Qal Sisma\n1 Goreclaw, Terror of Qal Sisma\n"
+        "4 Forest\n4 Sol Ring\n",
+    )
+
+    result = runner.invoke(app, ["analyze", str(deck)])
+
+    assert result.exit_code == 1
+    for heading in HEADINGS:
+        assert heading in result.output
+    assert "Only 8 cards in the library" in result.output

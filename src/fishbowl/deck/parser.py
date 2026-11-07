@@ -283,6 +283,37 @@ def read_deck(
     return deck
 
 
+def report(deck: ParsedDeck, lookup: CardLookup, write: Callable[[str], object]) -> int:
+    """Write the deck check for a parsed deck. Returns 0 only for a legal deck."""
+    validation = validate(deck, lookup)
+    write(f"Deck: {deck.total} cards")
+    commander_names = " + ".join(entry.name for entry in deck.commanders)
+    write(f"Commander: {commander_names or 'unknown'}")
+    if deck.left_out:
+        left_out = sum(entry.quantity for entry in deck.left_out)
+        write(f"Left out (sideboard, maybeboard, companion): {left_out} cards")
+    if deck.problems:
+        write("Problems:")
+        for problem in deck.problems:
+            if problem.line_number == 0:
+                write(f"  {problem.reason}")  # about the whole list, not one line
+            else:
+                write(f"  line {problem.line_number}: {problem.reason}")
+    if validation.is_legal:
+        write("Legal: yes")
+    else:
+        count = len(validation.errors)
+        write(f"Legal: no ({count} {'error' if count == 1 else 'errors'})")
+        write("Errors:")
+        for issue in validation.errors:
+            write(f"  {issue.message}")
+    if validation.notes:
+        write("Notes:")
+        for issue in validation.notes:
+            write(f"  {issue.message}")
+    return 0 if validation.is_legal else 1
+
+
 def main(
     argv: list[str] | None = None,
     db_path: Path = DEFAULT_DB,
@@ -297,34 +328,7 @@ def main(
         return 1
     with CardLookup(db_path) as lookup:
         deck = read_deck(path, lookup, read, write)
-        report = validate(deck, lookup)  # needs the lookup, so it runs inside the with
-
-    write(f"Deck: {deck.total} cards")
-    commander_names = " + ".join(entry.name for entry in deck.commanders)
-    write(f"Commander: {commander_names or 'unknown'}")
-    if deck.left_out:
-        left_out = sum(entry.quantity for entry in deck.left_out)
-        write(f"Left out (sideboard, maybeboard, companion): {left_out} cards")
-    if deck.problems:
-        write("Problems:")
-        for problem in deck.problems:
-            if problem.line_number == 0:
-                write(f"  {problem.reason}")  # about the whole list, not one line
-            else:
-                write(f"  line {problem.line_number}: {problem.reason}")
-    if report.is_legal:
-        write("Legal: yes")
-    else:
-        count = len(report.errors)
-        write(f"Legal: no ({count} {'error' if count == 1 else 'errors'})")
-        write("Errors:")
-        for issue in report.errors:
-            write(f"  {issue.message}")
-    if report.notes:
-        write("Notes:")
-        for issue in report.notes:
-            write(f"  {issue.message}")
-    return 0 if report.is_legal else 1
+        return report(deck, lookup, write)
 
 
 if __name__ == "__main__":

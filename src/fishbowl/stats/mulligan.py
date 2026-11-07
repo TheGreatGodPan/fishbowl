@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from fishbowl.deck.lookup import DEFAULT_DB, CardLookup
+from fishbowl.deck.model import ParsedDeck
 from fishbowl.deck.parser import find_deck_file, read_deck
 from fishbowl.stats.lands import (
     HAND_SIZE,
@@ -157,22 +158,14 @@ def mulligan_odds(
     return MulliganOdds(keep_rows, hand_size, drop_rows)
 
 
-def main(
-    argv: list[str] | None = None,
-    db_path: Path = DEFAULT_DB,
-    read: Callable[[str], str] = input,
-    write: Callable[[str], object] = print,
+def report(
+    deck: ParsedDeck,
+    lookup: CardLookup,
+    write: Callable[[str], object],
     trials: int = TRIALS,
 ) -> int:
-    """Print exact and simulated mulligan odds for a decklist file."""
-    args = sys.argv[1:] if argv is None else argv
-    usage = "Usage: uv run python -m fishbowl.stats.mulligan <decklist.txt>"
-    path = find_deck_file(args, db_path, usage, write)
-    if path is None:
-        return 1
-    with CardLookup(db_path) as lookup:
-        deck = read_deck(path, lookup, read, write)
-        lands, library = library_counts(deck, lookup)
+    """Write exact and simulated mulligan odds for a decklist file."""
+    lands, library = library_counts(deck, lookup)
 
     # Too few cards to see every turn: say so plainly instead of crashing.
     if library < CARDS_NEEDED:
@@ -208,6 +201,24 @@ def main(
     for row in odds.drop_rows:
         write(f"{row.label:<26}{row.exact:>13.1%}{row.simulated:>16.1%}")
     return 0
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+) -> int:
+    """Print exact and simulated mulligan odds for a decklist file."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.mulligan <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        return report(deck, lookup, write, trials)
 
 
 if __name__ == "__main__":

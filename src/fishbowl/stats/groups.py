@@ -152,23 +152,15 @@ def what_if(
     return rows
 
 
-def main(
-    argv: list[str] | None = None,
-    db_path: Path = DEFAULT_DB,
-    read: Callable[[str], str] = input,
-    write: Callable[[str], object] = print,
+def report(
+    deck: ParsedDeck,
+    lookup: CardLookup,
+    write: Callable[[str], object],
     trials: int = TRIALS,
 ) -> int:
-    """Print the mana dorks and tutors in a decklist, with what-if odds for each."""
-    args = sys.argv[1:] if argv is None else argv
-    usage = "Usage: uv run python -m fishbowl.stats.groups <decklist.txt>"
-    path = find_deck_file(args, db_path, usage, write)
-    if path is None:
-        return 1
-    with CardLookup(db_path) as lookup:
-        deck = read_deck(path, lookup, read, write)
-        _, library = library_counts(deck, lookup)
-        groups = find_groups(deck, lookup)  # needs the lookup, so it stays in here
+    """Write the mana dorks and tutors in a decklist, with what-if odds for each."""
+    _, library = library_counts(deck, lookup)
+    groups = find_groups(deck, lookup)  # needs the lookup, so it stays in here
 
     # Too few cards to see every checkpoint: say so plainly instead of crashing.
     if library < CHECKPOINTS[-1]:
@@ -214,6 +206,24 @@ def main(
                 line += f"{row.simulated:>13.1%}"
             write(line)
     return 0
+
+
+def main(
+    argv: list[str] | None = None,
+    db_path: Path = DEFAULT_DB,
+    read: Callable[[str], str] = input,
+    write: Callable[[str], object] = print,
+    trials: int = TRIALS,
+) -> int:
+    """Print the mana dorks and tutors in a decklist, with what-if odds for each."""
+    args = sys.argv[1:] if argv is None else argv
+    usage = "Usage: uv run python -m fishbowl.stats.groups <decklist.txt>"
+    path = find_deck_file(args, db_path, usage, write)
+    if path is None:
+        return 1
+    with CardLookup(db_path) as lookup:
+        deck = read_deck(path, lookup, read, write)
+        return report(deck, lookup, write, trials)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
 """Tests for the groups command: uv run python -m fishbowl.stats.groups <file>."""
 
-from fishbowl.stats.groups import main
+from fishbowl.deck.lookup import CardLookup
+from fishbowl.deck.parser import parse_deck
+from fishbowl.stats.groups import main, report
 
 GORECLAW = "Goreclaw, Terror of Qal Sisma"
 
@@ -83,3 +85,19 @@ def test_table_header_says_opening_hand_only(tmp_path, card_db):
     code, shown = run([str(deck)], card_db)
     assert code == 0
     assert any("sim. opening" in line for line in shown)
+
+
+def test_report_matches_main(tmp_path, card_db):
+    path = tmp_path / "deck.txt"
+    path.write_text(
+        f"Commander: {GORECLAW}\n1 {GORECLAW}\n1 Survival of the Fittest\n"
+        "33 Forest\n65 Sol Ring\n",
+        encoding="utf-8",
+    )
+    expected_code, expected = run([str(path)], card_db)
+    shown: list[str] = []
+    with CardLookup(card_db) as lookup:
+        deck = parse_deck(path.read_text(encoding="utf-8"), lookup)
+        code = report(deck, lookup, shown.append, trials=2000)
+    assert code == expected_code
+    assert shown == expected

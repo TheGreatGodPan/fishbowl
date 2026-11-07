@@ -10,7 +10,7 @@ import typer
 
 from fishbowl.data.refresh import refresh
 from fishbowl.deck import parser
-from fishbowl.deck.lookup import DEFAULT_DB
+from fishbowl.deck.lookup import DEFAULT_DB, CardLookup
 from fishbowl.stats import charts as charts_module
 from fishbowl.stats import curve, groups, lands, mulligan
 from fishbowl.stats.lands import TRIALS
@@ -85,26 +85,35 @@ def analyze(
     ] = False,
 ) -> None:
     """Run the deck check and every statistic in one report."""
-    args = [str(deck)]
-    sections = [
-        ("Deck check", lambda: parser.main(args, DB_PATH)),
-        ("Land odds", lambda: lands.main(args, DB_PATH, trials=TRIALS)),
-        ("Mulligans", lambda: mulligan.main(args, DB_PATH, trials=TRIALS)),
-        ("Card groups", lambda: groups.main(args, DB_PATH, trials=TRIALS)),
-        ("Commander on curve", lambda: curve.main(args, DB_PATH, trials=TRIALS)),
-    ]
-    if with_charts:
-        sections.append(
+    usage = "Usage: fishbowl analyze <decklist.txt>"
+    path = parser.find_deck_file([str(deck)], DB_PATH, usage, print)
+    if path is None:
+        raise typer.Exit(1)
+    # Read the deck once and share it, so the commander prompt (if any) appears once.
+    with CardLookup(DB_PATH) as lookup:
+        parsed = parser.read_deck(path, lookup, input, print)
+        # Every section runs even if an earlier one fails; all must return 0.
+        sections = [
+            ("Deck check", lambda: parser.report(parsed, lookup, print)),
+            ("Land odds", lambda: lands.report(parsed, lookup, print, TRIALS)),
+            ("Mulligans", lambda: mulligan.report(parsed, lookup, print, TRIALS)),
+            ("Card groups", lambda: groups.report(parsed, lookup, print, TRIALS)),
             (
-                "Charts",
-                lambda: charts_module.main(
-                    args, DB_PATH, trials=TRIALS, out_dir=CHARTS_DIR
-                ),
+                "Commander on curve",
+                lambda: curve.report(parsed, lookup, print, TRIALS),
+            ),
+        ]
+        if with_charts:
+            sections.append(
+                (
+                    "Charts",
+                    lambda: charts_module.report(
+                        parsed, lookup, print, TRIALS, CHARTS_DIR, deck.stem
+                    ),
+                )
             )
-        )
-    # Every section runs even if an earlier one fails; the worst code wins.
-    codes = []
-    for title, run in sections:
-        print(f"\n== {title} ==")
-        codes.append(run())
-    _finish(max(codes))
+        codes = []
+        for title, run in sections:
+            print(f"\n== {title} ==")
+            codes.append(run())
+    _finish(0 if all(code == 0 for code in codes) else 1)
